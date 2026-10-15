@@ -7,7 +7,8 @@ const HASHES = {
     md5: GLib.ChecksumType.MD5, sha1: GLib.ChecksumType.SHA1, sha256: GLib.ChecksumType.SHA256,
     sha384: GLib.ChecksumType.SHA384, sha512: GLib.ChecksumType.SHA512,
 };
-const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*-_=+';
+// The characters a generated password is made of, without look-alikes such as 0, O, 1 and l.
+const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*-_=+';
 // GLib.random_int_range takes 32-bit integers and leaves out its end, so the highest number is one less than the int32 maximum.
 const RANDOM_MIN = -2147483647;
 const RANDOM_MAX = 2147483646;
@@ -26,12 +27,12 @@ function randomBytes(n) {
 
 // Bytes from the kernel's random source. Bytes that would favour the first characters are thrown away.
 function randomPassword(len) {
-    const limit = 256 - 256 % PASSWORD_CHARS.length;
+    const limit = 256 - 256 % ALPHABET.length;
     let out = '';
     while (out.length < len) {
         for (const byte of randomBytes(len * 2)) {
             if (byte < limit && out.length < len)
-                out += PASSWORD_CHARS[byte % PASSWORD_CHARS.length];
+                out += ALPHABET[byte % ALPHABET.length];
         }
     }
     return out;
