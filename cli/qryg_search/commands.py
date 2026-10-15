@@ -55,9 +55,9 @@ def status(ctx, _args):
     state = extension_state(UUID)
     if state is None:
         if (EXTENSION_DIR / "metadata.json").exists():
-            warn("installed, GNOME loads it at next login: log out and back in, then `qryg-search enable`")
+            warn("installed, GNOME loads it at next login: log out and back in, then `qryg enable`")
         else:
-            warn("not installed: run `qryg-search install`, then log out and back in")
+            warn("not installed: run `qryg install`, then log out and back in")
         return
     link = f" -> {EXTENSION_DIR.resolve()}" if EXTENSION_DIR.is_symlink() else ""
     enabled = [m["id"] for m in ctx.plugins.all().values() if ctx.plugins.is_enabled(m)]
@@ -163,7 +163,7 @@ def _style_list(ctx, _args):
     rows = [("built-in", "active" if not active else "", "the default look")]
     rows += [(name, "active" if name == active else "", str(ctx.styles.path(name))) for name in ctx.styles.names()]
     table(rows)
-    print(dim("  create one: qryg-search style new NAME, then qryg-search style use NAME"))
+    print(dim("  create one: qryg style new NAME, then qryg style use NAME"))
 
 
 def _style_use(ctx, args):
@@ -180,7 +180,7 @@ def _style_off(ctx, _args):
 def _style_new(ctx, args):
     target = ctx.styles.create(_style_name(args), args.rest[1] if len(args.rest) > 1 else None)
     ok(f"created {target}")
-    print(f"  apply it: qryg-search style use {target.stem}")
+    print(f"  apply it: qryg style use {target.stem}")
 
 
 def _style_remove(ctx, args):
@@ -230,13 +230,13 @@ def source(ctx, args):
         raise CliError(f"name a source: {', '.join(sources)}")
     for name in targets:
         if name not in sources:
-            raise CliError(f"unknown source {name}, see `qryg-search source`")
+            raise CliError(f"unknown source {name}, see `qryg source`")
         if ctx.sources.set_enabled(sources[name], args.action == "on"):
             warn(f"{name} was also off in GNOME Settings, turned that on too")
         ok(f"{name} {args.action}")
 
 
-@command("keyword", "list prefixes, or set one: qryg-search keyword files find", aliases=["keywords"],
+@command("keyword", "list prefixes, or set one: qryg keyword files find", aliases=["keywords"],
          arguments=[("plugin", {"nargs": "?"}), ("prefix", {"nargs": "?", "help": "a prefix, none, or default"})])
 def keyword(ctx, args):
     if args.plugin is None:
@@ -247,7 +247,7 @@ def keyword(ctx, args):
             state = "" if ctx.plugins.is_enabled(manifest) else " (off)"
             rows.append((manifest["id"], prefix or "-", f"{usage}{state}"))
         table(rows)
-        print(dim("  change one: qryg-search keyword PLUGIN PREFIX   (none removes it, default restores it)"))
+        print(dim("  change one: qryg keyword PLUGIN PREFIX   (none removes it, default restores it)"))
         return
     manifest = ctx.plugins.get(args.plugin)
     if args.prefix is None:
@@ -284,7 +284,7 @@ def _plugin_list(ctx, _args):
 
 def _require_id(args):
     if not args.rest:
-        raise CliError(f"usage: qryg-search plugin {args.action} ID")
+        raise CliError(f"usage: qryg plugin {args.action} ID")
     return args.rest[0]
 
 
@@ -330,9 +330,9 @@ def _plugin_config(ctx, args):
 def _plugin_new(ctx, args):
     target, manifest = ctx.plugins.create(_require_id(args), args.type, args.lang, os.environ.get("USER", ""))
     ok(f"created {target}")
-    print(f"  edit {target / manifest['main']}, then: qryg-search plugin reload")
+    print(f"  edit {target / manifest['main']}, then: qryg plugin reload")
     if args.type == "js":
-        print(dim("  run `qryg-search plugin reload` after editing; no logout needed"))
+        print(dim("  run `qryg plugin reload` after editing; no logout needed"))
 
 
 def _plugin_install(ctx, args):
@@ -346,7 +346,7 @@ def _plugin_install(ctx, args):
     manifest, target, linked, reloaded = installed
     ok(f"installed {manifest['id']} to {target}" + (" (linked)" if linked else ""))
     if not reloaded:
-        warn("could not reach QryG's settings; run `qryg-search plugin reload` once it is installed")
+        warn("could not reach QryG's settings; run `qryg plugin reload` once it is installed")
 
 
 def _confirm_install(yes, manifest, spec, target, existing):
@@ -419,7 +419,7 @@ def _plugin_validate(ctx, args):
 
 def _plugin_test(ctx, args):
     if len(args.rest) < 1:
-        raise CliError("usage: qryg-search plugin test ID|PATH QUERY [--activate N]")
+        raise CliError("usage: qryg plugin test ID|PATH QUERY [--activate N]")
     folder, bundled = _plugin_folder(ctx, args.rest[0])
     manifest, problems, _warnings = load_manifest(folder, bundled)
     if problems:
@@ -472,7 +472,7 @@ PLUGIN_ACTIONS = {
 }
 
 
-@command("bookmark", "qryg-search bookmarks: list, add NAME TARGET, rm NAME", aliases=["bm"],
+@command("bookmark", "qryg bookmarks: list, add NAME TARGET, rm NAME", aliases=["bm"],
          arguments=[
              ("action", {"nargs": "?", "choices": ["list", "add", "rm", "remove", "path"]}),
              ("rest", {"nargs": "*"}),
@@ -484,16 +484,16 @@ def bookmark(ctx, args):
     if action == "list":
         items = ctx.bookmarks.load()
         if not items:
-            print("  no bookmarks yet, add one: qryg-search bookmark add docs ~/Documents")
+            print("  no bookmarks yet, add one: qryg bookmark add docs ~/Documents")
         table([(b["name"], b.get("type") or kind_of(b["target"]), b["target"]) for b in items])
     elif action == "add":
         if len(args.rest) < 2:
-            raise CliError("usage: qryg-search bookmark add NAME TARGET   (a path, URL, sftp://… or '> command')")
+            raise CliError("usage: qryg bookmark add NAME TARGET   (a path, URL, sftp://… or '> command')")
         entry = ctx.bookmarks.add(args.rest[0], " ".join(args.rest[1:]), args.type, args.tag)
         ok(f"bookmarked {entry['name']} ({entry['type']}) -> {entry['target']}")
     elif action in ("rm", "remove"):
         if not args.rest:
-            raise CliError("usage: qryg-search bookmark rm NAME")
+            raise CliError("usage: qryg bookmark rm NAME")
         removed = ctx.bookmarks.remove(args.rest)
         ok(f"removed {', '.join(removed)}")
         for name in args.rest:
@@ -509,10 +509,10 @@ def install_command(_ctx, args):
     cli = install(link=args.link)
     ok(f"installed to {EXTENSION_DIR}" + (" (linked)" if args.link else ""))
     ok(f"cli linked at {cli}")
-    print("  log out and back in to load it" + ("" if is_active(extension_state(UUID)) else ", then run: qryg-search enable"))
+    print("  log out and back in to load it" + ("" if is_active(extension_state(UUID)) else ", then run: qryg enable"))
 
 
 @command("uninstall", "remove the extension, keeping settings")
 def uninstall_command(_ctx, _args):
     uninstall()
-    ok("uninstalled; `qryg-search reset --all` before uninstalling clears settings")
+    ok("uninstalled; `qryg reset --all` before uninstalling clears settings")

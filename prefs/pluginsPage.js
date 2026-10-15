@@ -179,7 +179,7 @@ export function buildPluginsPage(context) {
             {label: 'Open', onClicked: openUserFolder},
             {label: 'Reload', onClicked: () => settings.set_int('plugins-reload', settings.get_int('plugins-reload') + 1)},
         ]),
-    ], 'Turn plugins on or off, change their prefix and settings. Create one with `qryg-search plugin new`.'),
+    ], 'Turn plugins on or off, change their prefix and settings. Create one with `qryg plugin new`.'),
     installGroup(context, refresh)]);
     refresh();
     return result;

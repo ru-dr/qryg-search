@@ -30,7 +30,7 @@ class StyleStore:
 
     def use(self, name):
         if not self.path(name).exists():
-            raise CliError(f"no style {name}; create it with `qryg-search style new {name}`")
+            raise CliError(f"no style {name}; create it with `qryg style new {name}`")
         self._settings.set_text("style", name)
 
     def off(self):

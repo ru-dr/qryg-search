@@ -25,27 +25,27 @@
     <key name="disabled-providers" type="as">
       <default>['org.gnome.Calculator.desktop']</default>
       <summary>Disabled sources</summary>
-      <description>Search sources that never show results, by provider id or desktop id. Manage with `qryg-search provider`.</description>
+      <description>Search sources that never show results, by provider id or desktop id. Manage with `qryg provider`.</description>
     </key>
     <key name="plugin-settings" type="s">
       <default>'{}'</default>
       <summary>Plugin settings</summary>
-      <description>JSON object of settings for plugins, keyed by plugin id. Manage with `qryg-search plugin config`.</description>
+      <description>JSON object of settings for plugins, keyed by plugin id. Manage with `qryg plugin config`.</description>
     </key>
     <key name="keywords" type="s">
       <default>'{}'</default>
       <summary>Custom prefixes</summary>
-      <description>JSON object mapping plugin id to its prefix, overriding the plugin default. An empty string removes the prefix. Manage with `qryg-search keyword`.</description>
+      <description>JSON object mapping plugin id to its prefix, overriding the plugin default. An empty string removes the prefix. Manage with `qryg keyword`.</description>
     </key>
     <key name="plugins-reload" type="i">
       <default>0</default>
       <summary>Plugin reload counter</summary>
-      <description>Changing this rescans the plugin folders. `qryg-search plugin reload` bumps it.</description>
+      <description>Changing this rescans the plugin folders. `qryg plugin reload` bumps it.</description>
     </key>
     <key name="plugins-reload-id" type="s">
       <default>''</default>
       <summary>Reload one plugin</summary>
-      <description>Setting this to a plugin id, optionally followed by # and any text, reloads only that plugin. `qryg-search plugin reload ID` sets it.</description>
+      <description>Setting this to a plugin id, optionally followed by # and any text, reloads only that plugin. `qryg plugin reload ID` sets it.</description>
     </key>
     <key name="plugin-status" type="s">
       <default>'{}'</default>

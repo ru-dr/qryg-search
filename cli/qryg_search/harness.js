@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Runs one query of a JavaScript plugin outside GNOME Shell, for `qryg-search plugin test`.
+// Runs one query of a JavaScript plugin outside GNOME Shell, for `qryg plugin test`.
 // Reads {manifest, query, raw, settings, activate} from the JSON file named in its argument, and prints one marked JSON line.
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';

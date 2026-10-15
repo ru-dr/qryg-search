@@ -5,17 +5,17 @@ A style is a CSS file that QryG applies on top of its built-in look. You can res
 ## Quick start
 
 ```bash
-qryg-search style new mine        # creates ~/.config/qryg-search/styles/mine.css from an example
-qryg-search style use mine        # apply it
+qryg style new mine        # creates ~/.config/qryg-search/styles/mine.css from an example
+qryg style use mine        # apply it
 ```
 
 Open `~/.config/qryg-search/styles/mine.css` in any editor. Every save applies straight away, so keep QryG open while you edit.
 
 ```bash
-qryg-search style                 # list styles, and see which one is active
-qryg-search style off             # back to the built-in look
-qryg-search style rm mine
-qryg-search style new other ~/Downloads/other.css   # start from someone else's file
+qryg style                 # list styles, and see which one is active
+qryg style off             # back to the built-in look
+qryg style rm mine
+qryg style new other ~/Downloads/other.css   # start from someone else's file
 ```
 
 You can also pick a style in **Preferences → Appearance → Style**, which has a button to open the styles folder.
@@ -85,7 +85,7 @@ There are more examples in [`examples/styles`](../examples/styles).
 A style is a single file. Share it as a gist or put it in a repository. Others can install it with:
 
 ```bash
-qryg-search style new NAME path/to/file.css
+qryg style new NAME path/to/file.css
 ```
 
-If something looks wrong, `qryg-search doctor` tells you when the active style file is missing.
+If something looks wrong, `qryg doctor` tells you when the active style file is missing.

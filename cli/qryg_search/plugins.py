@@ -129,7 +129,7 @@ class PluginCatalog:
     def get(self, plugin_id):
         manifest = self.all().get(plugin_id)
         if not manifest:
-            raise CliError(f"unknown plugin {plugin_id}, see `qryg-search plugin list`")
+            raise CliError(f"unknown plugin {plugin_id}, see `qryg plugin list`")
         return manifest
 
     def plugin_keys(self):
@@ -247,7 +247,7 @@ class PluginCatalog:
             manifest = remote.check(folder, API_VERSION)
             target = USER_PLUGINS / manifest["id"]
             if folder == target.resolve() or target.resolve() in folder.parents:
-                raise CliError(f"{folder} is already installed here; edit it in place, then `qryg-search plugin reload`")
+                raise CliError(f"{folder} is already installed here; edit it in place, then `qryg plugin reload`")
             link = link and spec["kind"] == "folder"
             existing = self.read_manifest(target) if target.exists() else None
             if confirm and not confirm(manifest, spec, target, existing):
@@ -281,14 +281,14 @@ class PluginCatalog:
             raise CliError(f"{manifest['id']} is linked to {manifest['_dir'].resolve()}; it is always up to date")
         source = self.source_of(manifest)
         if not source:
-            raise CliError(f"{manifest['id']} has no recorded source; reinstall it with `qryg-search plugin install`")
+            raise CliError(f"{manifest['id']} has no recorded source; reinstall it with `qryg plugin install`")
         before = manifest.get("version", "")
         updated, *_rest = self.install(source)
         return before, updated.get("version", "")
 
     def remove(self, manifest):
         if manifest["_bundled"]:
-            raise CliError(f"{manifest['id']} is bundled with QryG; disable it instead: qryg-search plugin disable {manifest['id']}")
+            raise CliError(f"{manifest['id']} is bundled with QryG; disable it instead: qryg plugin disable {manifest['id']}")
         remove_path(manifest["_dir"])
         self.reload()
 
