@@ -4,6 +4,8 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+## 2.0.0 - 2026-10-15
+
 ### Added
 
 - Every plugin has a prefix. New ones: `conv` for units, `fx` for currency, `col` for colours, `tz` for time and world clocks, `gen` for generators and `session` for session actions. They all still answer without the prefix.
