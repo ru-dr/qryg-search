@@ -104,7 +104,8 @@ You can also change them in **Preferences → Plugins**.
 | Key | Action |
 |---|---|
 | `Super + Space` | Open or close |
-| `Super` or `Esc` | Close |
+| `Super` | Close |
+| `Esc` | Clear the filter, then the text, then close |
 | `↑` `↓` | Move through results |
 | `Tab` or `→` | Accept the inline completion |
 | `Enter` | Open or run |
@@ -113,6 +114,7 @@ You can also change them in **Preferences → Plugins**.
 | `Ctrl + Shift + C` or `Super + C` | Copy the path or value |
 | `Ctrl + D` | Bookmark the selection, or remove a bookmark |
 | `Super + 1` to `4` | Apps, Files, Actions, Clipboard filter |
+| `Ctrl + Tab`, `Ctrl + Shift + Tab` | Next or previous filter |
 | `Backspace` on an empty bar | Clear the filter |
 
 ## What is a plugin, and what is GNOME
