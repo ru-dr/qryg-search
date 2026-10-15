@@ -15,6 +15,27 @@ function readKeywords(settings) {
     }
 }
 
+function readStatus(settings) {
+    try {
+        const status = JSON.parse(settings.get_string('plugin-status'));
+        return status && typeof status === 'object' ? status : {};
+    } catch {
+        return {};
+    }
+}
+
+function errorRow(status) {
+    const when = status.at ? GLib.DateTime.new_from_unix_local(status.at).format('%e %b %H:%M').trim() : '';
+    const counts = [status.errors > 1 ? `${status.errors} errors` : '', status.timeouts > 0 ? `${status.timeouts} timed out` : '']
+        .filter(Boolean).join(', ');
+    const row = new Adw.ActionRow({
+        title: escape(`Last error${when ? ` at ${when}` : ''}${counts ? ` (${counts})` : ''}`),
+        subtitle: escape(status.lastError),
+    });
+    row.add_prefix(new Gtk.Image({icon_name: 'dialog-warning-symbolic'}));
+    return row;
+}
+
 function isEnabled(settings, manifest) {
     const off = settings.get_strv('disabled-providers').includes(providerId(manifest.id));
     return !off && (!manifest.toggle || settings.get_boolean(manifest.toggle));
@@ -93,7 +114,7 @@ function settingRow(store, def) {
     }
 }
 
-function pluginRow(settings, manifest) {
+function pluginRow(settings, manifest, status) {
     const keyword = manifest.keyword ? `  ·  prefix ${manifest.keyword}` : '';
     const row = new Adw.ExpanderRow({
         title: escape(manifest.name),
@@ -107,6 +128,10 @@ function pluginRow(settings, manifest) {
         title: escape(`${manifest.type === 'js' ? 'JavaScript' : 'Script'} plugin · v${manifest.version}`),
         subtitle: escape(manifest.dir),
     }));
+    if (status?.lastError) {
+        row.add_suffix(new Gtk.Image({icon_name: 'dialog-warning-symbolic', tooltip_text: status.lastError}));
+        row.add_row(errorRow(status));
+    }
     row.add_row(keywordRow(settings, manifest));
     const store = new PluginSettings(settings, manifest);
     for (const def of manifest.settings)
@@ -120,7 +145,11 @@ function openUserFolder() {
 }
 
 export function buildPluginsPage({settings, path}) {
-    const {plugins, broken} = scan(GLib.build_filenamev([path, 'plugins']));
+    const scanned = scan(GLib.build_filenamev([path, 'plugins']));
+    const status = readStatus(settings);
+    const failed = scanned.plugins.filter(m => status[m.id]?.problems);
+    const plugins = scanned.plugins.filter(m => !failed.includes(m));
+    const broken = [...scanned.broken, ...failed.map(m => ({dir: m.dir, id: m.id, problems: status[m.id].problems}))];
     const byName = (a, b) => a.name.localeCompare(b.name);
     const groups = [group('Plugins', [
         buttonRow('Your plugins folder', USER_PLUGIN_DIR, [
@@ -130,13 +159,13 @@ export function buildPluginsPage({settings, path}) {
     ], 'Turn plugins on or off, change their prefix and settings. Create one with `qryg-search plugin new`.')];
     for (const [title, list] of [['Bundled', plugins.filter(p => p.bundled)], ['Installed', plugins.filter(p => !p.bundled)]]) {
         if (list.length > 0)
-            groups.push(group(title, list.sort(byName).map(m => pluginRow(settings, m))));
+            groups.push(group(title, list.sort(byName).map(m => pluginRow(settings, m, status[m.id]))));
     }
     if (broken.length > 0) {
         groups.push(group('Not loaded', broken.map(b => new Adw.ActionRow({
             title: escape(b.id ?? GLib.path_get_basename(b.dir)),
             subtitle: escape(b.problems.join('; ')),
-        })), 'Fix these manifests, then press Reload'));
+        })), 'Fix these plugins, then press Reload'));
     }
     return page('Plugins', 'application-x-addon-symbolic', groups);
 }

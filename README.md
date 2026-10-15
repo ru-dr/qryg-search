@@ -142,6 +142,8 @@ qryg-search plugin new weather                          # JavaScript
 qryg-search plugin new todo --type script --lang python # or Python, or --lang bash
 qryg-search plugin install https://github.com/you/qryg-search-plugin-x
 qryg-search plugin reload
+qryg-search plugin validate weather                     # check the manifest
+qryg-search plugin test weather paris                   # run one query outside GNOME Shell
 ```
 
 A complete JavaScript plugin:

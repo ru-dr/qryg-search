@@ -146,7 +146,7 @@ export default class ShellPlugin {
         }];
         if (output)
             rows.push({id: `copy:${first}`, title: 'Copy output', subtitle: `${output.split('\n').length} lines`, icon: 'edit-copy-symbolic', copy: output, activate: {copy: output}, preview});
-        rows.push({id: 'bg', title: query, subtitle: 'Run in the background, no window', icon: 'system-run-symbolic', copy: query, bookmark: `> ${query}`, activate: {exec: [shell, '-c', query]}, preview});
+        rows.push({id: 'bg', title: query, subtitle: 'Run in the background, no window', icon: 'system-run-symbolic', copy: query, bookmark: `> ${query}`, run: () => this.api.spawn([shell, '-c', query], HOME), preview});
         return rows;
     }
 }

@@ -1,73 +1,42 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import GLib from 'gi://GLib';
-import Gio from 'gi://Gio';
-import Soup from 'gi://Soup?version=3.0';
 import * as E from '../calc/engine.js';
-
-Gio._promisify(Soup.Session.prototype, 'send_and_read_async');
 
 const RATES_URL = 'https://open.er-api.com/v6/latest/USD';
 const RATES_MAX_AGE_S = 12 * 3600;
-const RETRY_AFTER_MS = 10 * 60 * 1000;
+const CHECK_EVERY_MS = 10 * 60 * 1000;
 const SYMBOLS = {'$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR'};
 const PAIR = /^\s*(.+?)\s*([a-zA-Z$€£¥₹]{1,3})\s+(?:to|in|as|into|=|->)\s+([a-zA-Z$€£¥₹]{1,3})\s*$/;
 const SINGLE = /^\s*(.+?)\s*([a-zA-Z$€£¥₹]{1,3})\s*$/;
 
 class Rates {
-    constructor(file) {
-        this._file = file;
+    constructor(api) {
+        this._api = api;
         this._rates = null;
         this._time = 0;
         this._pending = null;
-        this._session = null;
-        this._failedAt = 0;
-        this._cancellable = new Gio.Cancellable();
-        try {
-            const [, bytes] = GLib.file_get_contents(file);
-            const data = JSON.parse(new TextDecoder().decode(bytes));
-            this._rates = data.rates;
-            this._time = data.time;
-        } catch {}
+        this._checkedAt = 0;
     }
 
     get updated() {
         return this._time;
     }
 
-    get stale() {
-        return !this._rates || Date.now() / 1000 - this._time > RATES_MAX_AGE_S;
-    }
-
     async get() {
-        if (this.stale && Date.now() - this._failedAt > RETRY_AFTER_MS)
+        if (Date.now() - this._checkedAt > CHECK_EVERY_MS)
             await (this._pending ??= this._fetch().finally(() => (this._pending = null)));
         return this._rates;
     }
 
     async _fetch() {
-        const cancellable = this._cancellable;
         try {
-            this._session ??= new Soup.Session({timeout: 5});
-            const msg = Soup.Message.new('GET', RATES_URL);
-            const bytes = await this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, cancellable);
-            const data = msg.get_status() === 200 && bytes
-                ? JSON.parse(new TextDecoder().decode(bytes.get_data())) : null;
-            if (data?.result !== 'success' || !data.rates) {
-                this._failedAt = Date.now();
-                return;
+            const data = await this._api.fetchJson(RATES_URL, {ttl: RATES_MAX_AGE_S});
+            if (data?.result === 'success' && data.rates) {
+                this._rates = data.rates;
+                this._time = data.time_last_update_unix ?? Math.floor(Date.now() / 1000);
             }
-            this._rates = data.rates;
-            this._time = data.time_last_update_unix ?? Math.floor(Date.now() / 1000);
-            GLib.file_set_contents(this._file, JSON.stringify({time: this._time, rates: this._rates}));
-        } catch {
-            if (!cancellable.is_cancelled())
-                this._failedAt = Date.now();
-        }
-    }
-
-    destroy() {
-        this._cancellable.cancel();
-        this._session?.abort();
+        } catch {}
+        this._checkedAt = Date.now();
     }
 }
 
@@ -83,7 +52,7 @@ function looksLikeCurrency(name) {
 export default class CurrencyPlugin {
     constructor(api) {
         this.api = api;
-        this._rates = new Rates(GLib.build_filenamev([api.cacheDir, 'rates.json']));
+        this._rates = new Rates(api);
     }
 
     async query({query, cancellable}) {
@@ -96,8 +65,14 @@ export default class CurrencyPlugin {
         } catch {
             return [];
         }
+        const hadRates = this._rates.updated > 0;
         const rates = await this._rates.get();
-        if (cancellable?.is_cancelled() || !rates)
+        if (cancellable?.is_cancelled()) {
+            if (rates && !hadRates)
+                this.api.refresh();
+            return [];
+        }
+        if (!rates)
             return [];
         const src = code(m[2], rates);
         const dests = m[3]
@@ -123,9 +98,5 @@ export default class CurrencyPlugin {
                 },
             };
         });
-    }
-
-    destroy() {
-        this._rates.destroy();
     }
 }

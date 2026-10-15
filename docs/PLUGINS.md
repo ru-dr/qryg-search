@@ -47,7 +47,7 @@ Install one with `qryg-search plugin install examples/plugins/emoji`.
 
 1. At startup, and on every reload, QryG scans the bundled `plugins/` folder and `~/.local/share/qryg-search/plugins/`. A user plugin with the same `id` as a bundled one replaces it.
 2. Each folder needs a `manifest.json`. An invalid manifest is skipped and listed under *Not loaded* in Preferences → Plugins, with the reason.
-3. For every keystroke, QryG asks each enabled plugin for results through `query`. Slow or stale queries are cancelled.
+3. For every keystroke, QryG asks each enabled plugin for results through `query`. Stale queries are cancelled, and a query that takes longer than the manifest `timeout` is cancelled and counted as an error.
 4. When the user presses `Enter` or clicks a row button, QryG runs the result's effect or calls your `activate`.
 
 A plugin is shown in normal results when `global` is true. It is always shown when the user types its prefix, and when the filter matching its `category` is active.
@@ -92,8 +92,10 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `category` | no | `"general"` | `"apps"`, `"files"`, `"actions"`, `"clipboard"` or `"general"`. Ties the plugin to a filter button. |
 | `minQueryLength` | no | `1` | The shortest query sent without the prefix. A query with the prefix is always sent, even when empty. |
 | `completion` | no | `true` | Whether the top result's title can fill in the bar as inline completion. |
-| `timeout` | no | `1500` | `script` only: the time limit in milliseconds for each request, from 100 to 10000. |
+| `timeout` | no | `1500` | The time limit in milliseconds for each query, and for each script request, from 100 to 10000. |
 | `persistent` | no | `false` | `script` only: keep one process running instead of starting one per request. See [Long-running script plugins](#long-running-script-plugins). |
+| `startupTimeout` | no | `5000` | Persistent `script` only: extra milliseconds allowed while the process starts, from 0 to 30000. |
+| `toggle` | no | — | The name of a boolean QryG setting that also turns the plugin on and off. Used by bundled plugins. |
 | `icon` | no | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
 | `description`, `version`, `author` | no | — | Shown in preferences and `qryg-search plugin info`. |
 | `settings` | no | `[]` | User settings. See [Settings](#settings). |
@@ -137,7 +139,9 @@ export default class Weather {
 | `query(ctx)` | yes | For each search. Returns an array of [results](#results), or a Promise of one. |
 | `activate(result, action)` | no | When a result has no `run` or `activate` field. `action` is an action `id` or `null`. Return [effects](#effects) or `null`. |
 | `available()` | no | Return `false` to hide the plugin's filter button, for example when a dependency is missing. |
-| `destroy()` | no | On reload, disable and logout. Cancel timers, close files and disconnect signals here. |
+| `enable()` | no | After loading when the plugin is on, and whenever the user turns it back on. |
+| `disable()` | no | When the user turns the plugin off in preferences or with `qryg-search plugin disable`. The plugin stays loaded, so free anything heavy here and restore it in `enable()`. |
+| `destroy()` | no | On reload, when the extension is disabled, and at logout. Cancel timers, close files and disconnect signals here. `disable()` is not called first. |
 
 `query` receives a context object:
 
@@ -148,7 +152,7 @@ export default class Weather {
 | `forced` | `true` when the user typed this plugin's prefix. |
 | `terms` | The words, as GNOME splits them. |
 | `filter` | The active filter, `"apps"`, `"files"`, `"actions"` or `"clipboard"`, or `null` when there is none. |
-| `cancellable` | A `Gio.Cancellable` that is cancelled when the query is out of date. Pass it to async calls. |
+| `cancellable` | A `Gio.Cancellable` that is cancelled when the query is out of date or runs past `timeout`. Pass it to async calls. |
 
 ### The `api` object
 
@@ -156,7 +160,7 @@ export default class Weather {
 |---|---|
 | `api.id`, `api.name`, `api.dir` | The plugin id, name and folder. |
 | `api.settings.get(key)`, `.set(key, value)`, `.all()` | Read and write this plugin's [settings](#settings). |
-| `api.settings.onChanged(callback)` | Watch settings. Returns a function that stops watching, which you can call in `destroy()`. |
+| `api.settings.onChanged(callback)` | Watch this plugin's settings. `callback(keys)` gets the keys whose values changed. Returns a function that stops watching. Stops by itself on destroy. |
 | `api.cacheDir`, `api.configDir` | `~/.cache/qryg-search/plugins/<id>` and `~/.config/qryg-search/plugins/<id>`, created on first use. |
 | `api.copy(text)` | Copy to the clipboard. |
 | `api.open(target)` | Open a path or URI with its default app. |
@@ -167,8 +171,48 @@ export default class Weather {
 | `api.log(...args)` | Write to the journal, tagged with your id and rate limited. |
 | `api.refresh()` | Search again with the current text, for example when data arrives in the background. |
 | `api.expandPath(path)`, `api.tildify(path)` | Convert between `~/x` and `/home/you/x`. |
+| `api.timeout(ms, fn)` | Run `fn` after `ms` milliseconds. Return `true` from `fn` to run it again. Returns a function that cancels it. |
+| `api.idle(fn)` | Run `fn` when GNOME Shell is idle. Return `true` to run it again. Returns a function that cancels it. |
+| `api.connect(object, signal, fn)` | Connect to a GObject signal. Returns a function that disconnects it. |
+| `api.fetchJson(url, options)` | Fetch and parse JSON over HTTP. See [Helpers](#helpers). |
+| `api.match(text, query)` | Score how well `query` matches `text`, from 0 to 100, or `null`. See [Helpers](#helpers). |
 
-Keep `query` quick, because it runs in the GNOME Shell process. Do I/O asynchronously, honour `cancellable`, and cache anything expensive. An exception in `query` is caught and logged, and only empties your section.
+Timers, idle callbacks, signal connections and settings watches made through `api` are removed when the plugin is destroyed, so you don't need to track them yourself. Calling a returned stop function early is safe.
+
+Keep `query` quick, because it runs in the GNOME Shell process. Do I/O asynchronously, honour `cancellable`, and cache anything expensive. An exception in `query` is caught and logged, and only empties your section. So does a query that takes longer than `timeout`: QryG cancels `cancellable` and stops waiting for it.
+
+### Helpers
+
+`api.fetchJson(url, {cancellable, ttl, headers})` returns a Promise of the parsed JSON body:
+
+- every plugin shares one HTTP session, created on first use, with a 10 second network timeout
+- `ttl` caches the reply in `api.cacheDir` for that many seconds, and while the copy is fresh no request is made. When a request fails and a cached copy exists, even an old one, the old copy is returned.
+- `headers` is an object of request headers, such as `{Authorization: 'Bearer …'}`
+- a reply that isn't 2xx, or isn't valid JSON, rejects the Promise
+- requests still running are cancelled when the plugin is destroyed
+
+```js
+const data = await this.api.fetchJson('https://open.er-api.com/v6/latest/USD', {cancellable, ttl: 12 * 3600});
+```
+
+`api.match(text, query)` scores a fuzzy match, ignoring case and accents. Use the result as a result's [`score`](#ranking):
+
+| Match | Score |
+|---|---|
+| `text` equals `query` | 100 |
+| `text` starts with `query` | 80 to 90 |
+| a word in `text` starts with `query` | 60 to 75 |
+| `query` appears inside a word | 40 to 55 |
+| the letters of `query` appear in order, such as `vsc` in `Visual Studio Code` | 10 to 35 |
+| no match | `null` |
+
+Within each band, a query that covers more of the text scores higher. An empty query scores 0.
+
+```js
+return this._items
+    .map(item => ({title: item.name, score: this.api.match(item.name, query)}))
+    .filter(result => result.score !== null);
+```
 
 ## Script plugins
 
@@ -202,8 +246,8 @@ The environment:
 |---|---|
 | `QRYG_SEARCH_PLUGIN_ID` | The plugin id |
 | `QRYG_SEARCH_PLUGIN_DIR` | The plugin folder (also the working directory) |
-| `QRYG_SEARCH_CACHE_DIR` | `~/.cache/qryg-search/plugins/<id>` |
-| `QRYG_SEARCH_CONFIG_DIR` | `~/.config/qryg-search/plugins/<id>` |
+| `QRYG_SEARCH_CACHE_DIR` | `~/.cache/qryg-search/plugins/<id>`, created before the script starts |
+| `QRYG_SEARCH_CONFIG_DIR` | `~/.config/qryg-search/plugins/<id>`, created before the script starts |
 
 The limits:
 
@@ -246,8 +290,11 @@ Each request is one line of JSON on stdin with an `id`. Each reply is one line o
 - Your process can send lines of its own at any time:
   - `{"method": "refresh"}` makes QryG search again, for example when background data arrives
   - `{"method": "log", "message": "…"}` writes to the journal
+  - `{"method": "ready"}` says startup is done
+  - `{"method": "error", "message": "…"}` reports a problem, which shows under the plugin in Preferences → Plugins
+- Until the process prints its first line, requests are allowed `timeout` plus `startupTimeout` milliseconds, so a slow start doesn't fail the first query. Print `{"method": "ready"}` as soon as you can answer.
 - If the process exits, QryG restarts it on the next request. After three crashes within a minute it stops trying until plugins are reloaded.
-- The process is stopped on reload, when the plugin is disabled, and at logout.
+- The process is stopped on reload, when the plugin is disabled, and at logout. When the plugin is turned back on, the next request starts it again.
 
 ```python
 for line in sys.stdin:
@@ -302,8 +349,8 @@ Up to 50 results are kept per query. Results with a `score` are sorted by it, hi
 
 1. `run()`
 2. `activate` effects
-3. your plugin's `activate(result, null)`
-4. copying `copy`
+3. your plugin's `activate(result, null)`, when it returns at least one [effect](#effects)
+4. copying `copy`, or `path` when there is no `copy`
 
 The window closes afterwards.
 
@@ -425,12 +472,14 @@ Settings declared in the manifest appear under the plugin in Preferences → Plu
 | `min`, `max` | Limits, for `int` |
 | `choices` | The options, for `choice` |
 
-Values are stored for you, and invalid values fall back to `default`. Read them with `api.settings.get(key)` in JavaScript, or from `settings` in each script request.
+Values are stored for you, and invalid values fall back to `default`. That includes an `int` outside `min` and `max`. Read them with `api.settings.get(key)` in JavaScript, or from `settings` in each script request.
 
 ```bash
 qryg-search plugin config weather              # show settings
 qryg-search plugin config weather city Berlin  # change one
 ```
+
+The CLI refuses values that would fall back: a number outside `min` and `max`, a choice that isn't listed, or a `bool` that isn't a word like `on`, `off`, `true` or `false`.
 
 ## Prefixes
 
@@ -455,12 +504,19 @@ Pick a short word over a symbol. Single symbols are scarce, and the bundled plug
 journalctl --user -f -o cat | grep qryg-search   # api.log output, load errors, query errors
 qryg-search plugin list                          # state, prefix and folder of every plugin
 qryg-search plugin info weather                  # prefix, state, folder and settings
-qryg-search plugin reload
+qryg-search plugin validate weather              # check the manifest, by id or folder
+qryg-search plugin test weather paris            # run one query and print the results
+qryg-search plugin test weather paris --activate 1   # also show what Enter on result 1 does
+qryg-search plugin reload weather                # reload one plugin
+qryg-search plugin reload                        # reload every plugin
 ```
 
-- A script plugin can be tested without QryG: `echo '{"query":"paris"}' | ./plugin.py query`.
+- `plugin validate` takes an id or a folder. It prints the problems that stop a plugin loading, and warnings for unknown fields and values that QryG quietly replaces with a default.
+- `plugin test` takes an id or a folder, and runs the query outside GNOME Shell, as if the prefix was typed. Script plugins run exactly as QryG runs them, with the same environment, working directory, settings, `timeout` and size limit, and persistent ones through `serve`. JavaScript plugins run under `gjs` with a stand-in `api`: effects and calls like `api.copy` are printed, not performed. A JavaScript plugin that imports GNOME Shell modules can only be tested in GNOME Shell.
+- A script plugin can also be tested by hand: `echo '{"query":"paris"}' | ./plugin.py query`.
 - A reload loads a fresh copy of your `main` module. Helper modules it imports stay cached until the next login, so during development keep code you change often in `main`.
-- A syntax error in `plugin.js` shows up under *Not loaded* in preferences.
+- A syntax error in `plugin.js`, or an exception in your constructor, shows up under *Not loaded* in preferences.
+- Errors and timeouts while running show as a warning on the plugin in preferences, with the last error. They are counted until the next reload.
 
 ## Sharing a plugin
 
