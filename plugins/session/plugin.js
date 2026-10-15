@@ -2,7 +2,7 @@
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
-import {ACTIONS, allowed, match} from './actions.js';
+import {ACTIONS, allowed, matchActions} from './actions.js';
 
 Gio._promisify(Gio.DBusConnection.prototype, 'call');
 
@@ -15,7 +15,7 @@ export default class SessionPlugin {
         this.api = api;
         this._system = SystemActions.getDefault();
         this._canHibernate = null;
-        this._timeoutId = 0;
+        this._stopLater = null;
     }
 
     async _hibernate() {
@@ -44,17 +44,15 @@ export default class SessionPlugin {
     }
 
     _later(fn) {
-        if (this._timeoutId)
-            GLib.source_remove(this._timeoutId);
-        this._timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, DELAY_MS, () => {
-            this._timeoutId = 0;
+        this._stopLater?.();
+        this._stopLater = this.api.timeout(DELAY_MS, () => {
+            this._stopLater = null;
             try {
                 fn();
             } catch (e) {
                 this.api.log(e.message);
                 this.api.notify('Session action failed', e.message);
             }
-            return GLib.SOURCE_REMOVE;
         });
     }
 
@@ -95,7 +93,7 @@ export default class SessionPlugin {
         const available = await this._available();
         const found = forced && !query
             ? ACTIONS.filter(action => allowed(action, available)).map(action => ({action, score: 50}))
-            : match(query, available);
+            : matchActions(query, available, forced);
         return found.map(({action, score}) => ({
             id: action.id,
             title: action.title,
@@ -106,11 +104,5 @@ export default class SessionPlugin {
             run: () => this._later(() => this._activate(action.id)),
             preview: {title: action.title, kind: 'Session', icon: action.icon, body: action.subtitle},
         }));
-    }
-
-    destroy() {
-        if (this._timeoutId)
-            GLib.source_remove(this._timeoutId);
-        this._timeoutId = 0;
     }
 }

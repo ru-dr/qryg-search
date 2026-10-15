@@ -2,6 +2,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Z from '../plugins/time/zones.js';
+import {relativeTime} from '../lib/plugins/text.js';
 
 const ZONE_TAB = `# comment
 JP\t+353916+1394441\tAsia/Tokyo
@@ -67,9 +68,9 @@ test('formats offsets, differences and relative times', () => {
     assert.equal(Z.difference(540, 120), '7 h ahead');
     assert.equal(Z.difference(-210, 0), '3 h 30 min behind');
     assert.equal(Z.difference(60, 60), 'Same time as here');
-    assert.equal(Z.relative(-3 * 86400 - 5), '3 days ago');
-    assert.equal(Z.relative(2 * 3600 + 30), 'in 2 hours');
-    assert.equal(Z.relative(-60), '1 minute ago');
-    assert.equal(Z.relative(4), 'Just now');
-    assert.equal(Z.relative(-400 * 86400), '1 year ago');
+    assert.equal(relativeTime(-3 * 86400 - 5), '3 days ago');
+    assert.equal(relativeTime(2 * 3600 + 30), 'in 2 hours');
+    assert.equal(relativeTime(-60), '1 minute ago');
+    assert.equal(relativeTime(4), 'Just now');
+    assert.equal(relativeTime(-400 * 86400), '1 year ago');
 });

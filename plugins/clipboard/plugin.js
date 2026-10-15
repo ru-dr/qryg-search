@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {PREVIEW_CODE_CHARS, matchWords, relativeTime, truncate} from '../../lib/plugins/text.js';
 
 const COPYOUS_UUID = 'copyous@boerdereinar.dev';
 const MAX_RESULTS = 20;
+const MAX_TITLE_CHARS = 90;
 const TYPE_ICONS = {
     Text: 'edit-paste-symbolic', Code: 'text-x-script-symbolic', Image: 'image-x-generic-symbolic',
     File: 'text-x-generic-symbolic', Files: 'folder-symbolic', Link: 'web-browser-symbolic',
@@ -15,17 +17,14 @@ function copyous() {
     return ext?.stateObj?.entryTracker ? ext.stateObj : null;
 }
 
-function relativeTime(datetime) {
-    if (!datetime)
-        return '';
-    const s = Math.max(0, GLib.DateTime.new_now_utc().difference(datetime) / 1e6);
-    if (s < 60)
-        return 'Just now';
-    if (s < 3600)
-        return `${Math.floor(s / 60)} min ago`;
-    if (s < 86400)
-        return `${Math.floor(s / 3600)} h ago`;
-    return `${Math.floor(s / 86400)} d ago`;
+// Copyous has no public way to list its history, so this is the one place that reads its private map.
+function historyOf(ext) {
+    const map = ext.entryTracker?._entries;
+    return typeof map?.values === 'function' ? [...map.values()] : [];
+}
+
+function copiedWhen(datetime) {
+    return datetime ? relativeTime(Math.min(0, datetime.difference(GLib.DateTime.new_now_utc()) / 1e6)) : '';
 }
 
 export default class ClipboardPlugin {
@@ -41,23 +40,24 @@ export default class ClipboardPlugin {
         const ext = copyous();
         if (!ext)
             return [];
-        const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-        return [...ext.entryTracker._entries.values()]
-            .filter(e => words.every(w => `${e.title ?? ''} ${e.content ?? ''}`.toLowerCase().includes(w)))
-            .sort((a, b) => (b.datetime?.to_unix() ?? 0) - (a.datetime?.to_unix() ?? 0))
+        return historyOf(ext)
+            .map(e => ({e, score: matchWords([e.title, e.content], query)}))
+            .filter(({score}) => score !== null)
+            .sort((a, b) => (b.e.datetime?.to_unix() ?? 0) - (a.e.datetime?.to_unix() ?? 0))
             .slice(0, MAX_RESULTS)
-            .map(e => {
+            .map(({e, score}) => {
                 const text = (e.title || e.content || '').replace(/\s+/g, ' ').trim();
-                const when = relativeTime(e.datetime);
+                const when = copiedWhen(e.datetime);
                 return {
                     id: String(e.id),
-                    title: text.length > 90 ? `${text.slice(0, 90)}…` : text || '(empty)',
-                    subtitle: `${e.type ?? ''} · ${when}`,
+                    title: truncate(text, MAX_TITLE_CHARS) || '(empty)',
+                    subtitle: [e.type, when].filter(Boolean).join(' · '),
                     icon: TYPE_ICONS[e.type] ?? 'edit-paste-symbolic',
                     kind: e.type ?? 'Clipboard',
+                    score: query ? score : undefined,
                     copy: e.content ?? '',
                     run: () => ext.clipboardManager.copyEntry(e).catch(err => this.api.log(err.message)),
-                    preview: {kind: e.type ?? 'Clipboard', code: (e.content ?? '').slice(0, 600), details: [['Copied', when]]},
+                    preview: {kind: e.type ?? 'Clipboard', code: truncate(e.content ?? '', PREVIEW_CODE_CHARS), details: [['Copied', when]]},
                 };
             });
     }

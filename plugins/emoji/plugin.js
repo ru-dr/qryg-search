@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
-import Gio from 'gi://Gio';
 import St from 'gi://St';
 import * as Emoji from './search.js';
-
-Gio._promisify(Gio.File.prototype, 'load_contents_async');
+import {readText} from '../../lib/plugins/helpers.js';
 
 const MAX_RESULTS = 30;
 const POPULAR = ['😂', '❤️', '👍', '🔥', '😊', '🎉', '🙏', '😭', '✨', '😍', '🤔', '👀'];
@@ -23,17 +21,17 @@ function glyph(char) {
 export default class EmojiPlugin {
     constructor(api) {
         this.api = api;
-        this._entries = null;
         this._loading = null;
     }
 
+    // Loads once. A failed load is tried again on the next query.
     _load() {
-        this._loading ??= (async () => {
-            const file = Gio.File.new_for_path(GLib.build_filenamev([this.api.dir, 'emoji.json']));
-            const [bytes] = await file.load_contents_async(null);
-            this._entries = Emoji.index(JSON.parse(new TextDecoder().decode(bytes)));
-            return this._entries;
-        })();
+        this._loading ??= readText(GLib.build_filenamev([this.api.dir, 'emoji.json']))
+            .then(text => Emoji.index(JSON.parse(text)))
+            .catch(e => {
+                this._loading = null;
+                throw e;
+            });
         return this._loading;
     }
 
@@ -64,7 +62,7 @@ export default class EmojiPlugin {
     }
 
     async query({query, forced}) {
-        const entries = this._entries ?? await this._load();
+        const entries = await this._load();
         if (!query) {
             if (!forced)
                 return [];

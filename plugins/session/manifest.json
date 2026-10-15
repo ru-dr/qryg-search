@@ -17,7 +17,8 @@
   "examples": [
     ["", "Every session action"],
     ["lock", "Lock the screen, also without the prefix"],
-    ["suspend", "Suspend, or hibernate when it is available"],
+    ["suspend", "Suspend the computer"],
+    ["hibernate", "Hibernate, when the system allows it"],
     ["restart", "Restart, log out or power off, after GNOME asks"]
   ]
 }

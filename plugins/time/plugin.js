@@ -1,37 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import GLib from 'gi://GLib';
-import Gio from 'gi://Gio';
 import * as Z from './zones.js';
-
-Gio._promisify(Gio.File.prototype, 'load_contents_async');
+import {readText} from '../../lib/plugins/helpers.js';
+import {copyRow} from '../../lib/plugins/rows.js';
+import {relativeTime} from '../../lib/plugins/text.js';
 
 const ICON = 'x-office-calendar-symbolic';
 const ZONE_ICON = 'preferences-system-time-symbolic';
 
-function rows(unixSeconds, withMs) {
-    const dt = GLib.DateTime.new_from_unix_local(Math.floor(unixSeconds));
+// `nowMs` is given when the time is now: then the last row is Unix milliseconds instead of the time relative to now.
+function timestampRows(unixSeconds, nowMs = null) {
+    const seconds = Math.floor(unixSeconds);
+    const dt = GLib.DateTime.new_from_unix_local(seconds);
     const list = [
         [dt.format('%a %e %b %Y, %H:%M:%S %Z').replace(/\s+/g, ' '), 'Local time'],
         [dt.to_utc().format('%Y-%m-%dT%H:%M:%SZ'), 'ISO 8601 UTC'],
-        [`${Math.floor(unixSeconds)}`, 'Unix seconds'],
+        [`${seconds}`, 'Unix seconds'],
+        nowMs !== null
+            ? [`${nowMs}`, 'Unix milliseconds']
+            : [relativeTime(seconds - Math.floor(Date.now() / 1000)), 'Relative to now'],
     ];
-    if (withMs)
-        list.push([`${Date.now()}`, 'Unix milliseconds']);
-    else
-        list.push([Z.relative(Math.floor(unixSeconds) - Math.floor(Date.now() / 1000)), 'Relative to now']);
-    return list.map(([title, subtitle]) => ({
-        title, subtitle, icon: ICON, copy: title, activate: {copy: title},
-        preview: {kind: subtitle, details: list.map(([v, k]) => [k, v])},
-    }));
-}
-
-async function readText(path) {
-    try {
-        const [bytes] = await Gio.File.new_for_path(path).load_contents_async(null);
-        return new TextDecoder().decode(bytes);
-    } catch {
-        return '';
-    }
+    const details = list.map(([v, k]) => [k, v]);
+    return list.map(([title, subtitle]) => copyRow(title, subtitle, ICON, {preview: {kind: subtitle, details}}));
 }
 
 function offsetMinutes(dt) {
@@ -77,19 +67,13 @@ export default class TimePlugin {
         ];
         if (id)
             details.push(['Time zone', id]);
-        const title = `${time} in ${label}`;
-        return {
+        return copyRow(`${time} in ${label}`, [date, Z.formatOffset(offset), diff].join(' · '), ZONE_ICON, {
             id: id ?? Z.formatOffset(offset),
-            title,
-            subtitle: [date, Z.formatOffset(offset), diff].join(' · '),
-            icon: ZONE_ICON,
             kind: 'World clock',
             score,
-            copy: title,
-            activate: {copy: title},
             actions: [{id: 'iso', label: 'Copy ISO 8601', icon: 'edit-copy-symbolic', copy: dt.format('%Y-%m-%dT%H:%M:%S%:z')}],
             preview: {title: time, kind: label, details},
-        };
+        });
     }
 
     _idRow(index, id, score) {
@@ -113,6 +97,8 @@ export default class TimePlugin {
         if (offset !== null && offset !== 0)
             return [this._offsetRow(offset, 90)];
         const index = await this._loadIndex();
+        if (offset === 0)
+            return [this._idRow(index, 'UTC', 90)].filter(Boolean);
         return Z.lookup(index, place).map(({id, score}) => this._idRow(index, id, score)).filter(Boolean);
     }
 
@@ -132,11 +118,13 @@ export default class TimePlugin {
 
     async query({query, forced}) {
         const low = query.toLowerCase();
-        if (/^(now|time|date|unix|epoch|timestamp)$/.test(low) || (forced && !low))
-            return [...rows(Date.now() / 1000, true), ...await this._clocks()];
+        if (/^(now|time|date|unix|epoch|timestamp)$/.test(low) || (forced && !low)) {
+            const now = Date.now();
+            return [...timestampRows(now / 1000, now), ...await this._clocks()];
+        }
         const m = /^(?:ts\s+)?(\d{10}|\d{13})$/.exec(low);
         if (m)
-            return rows(m[1].length === 13 ? Number(m[1]) / 1000 : Number(m[1]), false);
+            return timestampRows(m[1].length === 13 ? Number(m[1]) / 1000 : Number(m[1]));
         const place = Z.parsePlace(query) ?? (forced ? query.replace(/^(?:in|at)\s+/i, '').trim() || null : null);
         return place ? this._world(place) : [];
     }

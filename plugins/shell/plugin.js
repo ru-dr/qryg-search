@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
+import {copyRow} from '../../lib/plugins/rows.js';
 
 Gio._promisify(Gio.InputStream.prototype, 'read_bytes_async');
 Gio._promisify(Gio.Subprocess.prototype, 'wait_async');
 
 const HOME = GLib.get_home_dir();
+// Keep this below the manifest timeout, so a slow command is stopped and its output shown before the query is cancelled.
 const TIMEOUT_MS = 2000;
 const MAX_CHARS = 6000;
 const UNSAFE_CHARS = /[;|&<>`$\\(){}[\]*?=!#%^]/;
@@ -51,11 +53,9 @@ export default class ShellPlugin {
         const stop = new Gio.Cancellable();
         const killId = cancellable?.connect(() => stop.cancel()) ?? 0;
         let timedOut = false;
-        let timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, TIMEOUT_MS, () => {
-            timeoutId = 0;
+        const stopTimer = this.api.timeout(TIMEOUT_MS, () => {
             timedOut = true;
             stop.cancel();
-            return GLib.SOURCE_REMOVE;
         });
         const stream = proc.get_stdout_pipe();
         const chunks = [];
@@ -81,8 +81,7 @@ export default class ShellPlugin {
             if (!stop.is_cancelled())
                 error = e.message;
         } finally {
-            if (timeoutId)
-                GLib.source_remove(timeoutId);
+            stopTimer();
             if (killId)
                 cancellable.disconnect(killId);
             if (!finished)
@@ -135,7 +134,7 @@ export default class ShellPlugin {
             details,
         };
         const rows = [{
-            id: `term:${first}`,
+            id: 'term',
             title: query,
             subtitle: output !== null ? (first || '(no output)') : `Enter to run in ${term?.name ?? 'a shell'}`,
             icon: 'utilities-terminal-symbolic',
@@ -145,7 +144,7 @@ export default class ShellPlugin {
             preview,
         }];
         if (output)
-            rows.push({id: `copy:${first}`, title: 'Copy output', subtitle: `${output.split('\n').length} lines`, icon: 'edit-copy-symbolic', copy: output, activate: {copy: output}, preview});
+            rows.push(copyRow('Copy output', `${output.split('\n').length} lines`, 'edit-copy-symbolic', {id: 'copy', copy: output, preview}));
         rows.push({id: 'bg', title: query, subtitle: 'Run in the background, no window', icon: 'system-run-symbolic', copy: query, bookmark: `> ${query}`, run: () => this.api.spawn([shell, '-c', query], HOME), preview});
         return rows;
     }

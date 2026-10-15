@@ -32,9 +32,10 @@ export function normalize(query) {
     return query.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
 
-export function matchScore(action, query) {
+// A typed prefix makes the query intentional, so short words like "lo" match too.
+export function matchScore(action, query, forced = false) {
     const q = normalize(query);
-    if (q.length < MIN_PREFIX)
+    if (!q || (q.length < MIN_PREFIX && !forced))
         return 0;
     let best = 0;
     for (const word of action.words) {
@@ -52,9 +53,9 @@ export function allowed(action, available) {
     return known === undefined ? !action.strict : Boolean(known);
 }
 
-export function match(query, available) {
+export function matchActions(query, available, forced = false) {
     return ACTIONS
-        .map(action => ({action, score: matchScore(action, query)}))
+        .map(action => ({action, score: matchScore(action, query, forced)}))
         .filter(({action, score}) => score > 0 && allowed(action, available))
         .sort((a, b) => b.score - a.score);
 }

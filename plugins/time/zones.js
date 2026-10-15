@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// World clock lookups and relative times. No GNOME imports, so it can be tested with node.
+// World clock lookups. No GNOME imports, so it can be tested with node.
+import {fold} from '../../lib/plugins/match.js';
 
 // Names people type that are not in the zone database, and abbreviations, which it does not resolve well.
 export const ALIASES = {
@@ -52,8 +53,7 @@ const TRIGGER = '(?:time|now|date|clock)';
 const MAX_MATCHES = 6;
 
 export function normalize(text) {
-    return text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
-        .replace(/[_./-]+/g, ' ').replace(/[^\p{L}\p{N}+:' ]/gu, '').replace(/\s+/g, ' ').trim();
+    return fold(text).replace(/[_./-]+/g, ' ').replace(/[^\p{L}\p{N}+:' ]/gu, '').replace(/\s+/g, ' ').trim();
 }
 
 export function cityOf(id) {
@@ -188,20 +188,4 @@ export function difference(zoneMinutes, localMinutes) {
     const min = abs % 60;
     const amount = [h ? `${h} h` : '', min ? `${min} min` : ''].filter(Boolean).join(' ');
     return `${amount} ${diff > 0 ? 'ahead' : 'behind'}`;
-}
-
-const UNITS = [
-    ['year', 365 * 86400], ['month', 30 * 86400], ['week', 7 * 86400], ['day', 86400],
-    ['hour', 3600], ['minute', 60], ['second', 1],
-];
-
-// seconds is the time minus now: negative is in the past.
-export function relative(seconds) {
-    const abs = Math.abs(seconds);
-    if (abs < 10)
-        return 'Just now';
-    const [unit, size] = UNITS.find(([, s]) => abs >= s);
-    const n = Math.floor(abs / size);
-    const text = `${n} ${unit}${n === 1 ? '' : 's'}`;
-    return seconds < 0 ? `${text} ago` : `in ${text}`;
 }

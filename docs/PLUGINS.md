@@ -183,6 +183,10 @@ export default class Weather {
 | `api.connect(object, signal, fn)` | Connect to a GObject signal. Returns a function that disconnects it. |
 | `api.fetchJson(url, options)` | Fetch and parse JSON over HTTP. See [Helpers](#helpers). |
 | `api.match(text, query)` | Score how well `query` matches `text`, from 0 to 100, or `null`. See [Helpers](#helpers). |
+| `api.matchWords(fields, query)` | Like `api.match`, but every word of `query` must appear somewhere in `fields`, a string or an array of strings, in any order. |
+| `api.readText(path, cancellable)` | A Promise of a file's text, or `''` when it can't be read. |
+| `api.copyRow(title, subtitle, icon, extra)` | A result that copies `extra.copy`, or else `title`, on Enter. Other fields of `extra`, such as `preview` or `score`, are added to it. |
+| `api.warningRow(title, subtitle)` | A result with a warning icon, for input the plugin can't use. |
 
 Timers, idle callbacks, signal connections and settings watches made through `api` are removed when the plugin is destroyed, so you don't need to track them yourself. Calling a returned stop function early is safe.
 

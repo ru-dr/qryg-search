@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import * as Color from './color.js';
+import {copyRow} from '../../lib/plugins/rows.js';
 
 function grade(x) {
     return x >= 7 ? 'AAA' : x >= 4.5 ? 'AA' : x >= 3 ? 'AA large' : 'fail';
@@ -11,9 +12,7 @@ export default class ColorsPlugin {
     }
 
     query({query, forced}) {
-        let text = query.trim();
-        if (forced && /^([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(text))
-            text = `#${text}`;
+        const text = forced && Color.HEX_DIGITS.test(query) ? `#${query}` : query;
         if (!/^(#|rgba?\(|hsla?\()/i.test(text))
             return [];
         const c = Color.parseColor(text);
@@ -34,8 +33,6 @@ export default class ColorsPlugin {
                 ['Luminance', Color.luminance(c).toFixed(3)],
             ],
         };
-        return formats.map(([kind, value]) => ({
-            title: value, subtitle: kind, icon: {color: hex}, copy: value, activate: {copy: value}, preview,
-        }));
+        return formats.map(([kind, value]) => copyRow(value, kind, {color: hex}, {preview}));
     }
 }

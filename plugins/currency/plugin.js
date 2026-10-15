@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import GLib from 'gi://GLib';
-import * as E from '../calc/engine.js';
+import {evaluate, formatGrouped} from '../../lib/plugins/math.js';
+import {copyRow} from '../../lib/plugins/rows.js';
+import {currencyCode, currencyDigits, parseQuery} from './parse.js';
 
 const RATES_URL = 'https://open.er-api.com/v6/latest/USD';
 const RATES_MAX_AGE_S = 12 * 3600;
 const CHECK_EVERY_MS = 10 * 60 * 1000;
-const SYMBOLS = {'$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR'};
-const PAIR = /^\s*(.+?)\s*([a-zA-Z$€£¥₹]{1,3})\s+(?:to|in|as|into|=|->)\s+([a-zA-Z$€£¥₹]{1,3})\s*$/;
-const SINGLE = /^\s*(.+?)\s*([a-zA-Z$€£¥₹]{1,3})\s*$/;
 
 class Rates {
     constructor(api) {
@@ -40,15 +39,6 @@ class Rates {
     }
 }
 
-function code(name, rates) {
-    const c = SYMBOLS[name] ?? name.toUpperCase();
-    return rates && c in rates ? c : null;
-}
-
-function looksLikeCurrency(name) {
-    return Boolean(SYMBOLS[name]) || /^[a-zA-Z]{3}$/.test(name);
-}
-
 export default class CurrencyPlugin {
     constructor(api) {
         this.api = api;
@@ -56,12 +46,12 @@ export default class CurrencyPlugin {
     }
 
     async query({query, cancellable}) {
-        const m = PAIR.exec(query) ?? SINGLE.exec(query);
-        if (!m || !looksLikeCurrency(m[2]) || (m[3] && !looksLikeCurrency(m[3])))
+        const parsed = parseQuery(query);
+        if (!parsed)
             return [];
         let amount;
         try {
-            amount = E.evaluate(m[1]).value;
+            amount = evaluate(parsed.amount).value;
         } catch {
             return [];
         }
@@ -74,29 +64,24 @@ export default class CurrencyPlugin {
         }
         if (!rates)
             return [];
-        const src = code(m[2], rates);
-        const dests = m[3]
-            ? [code(m[3], rates)]
-            : this.api.settings.get('currencies').map(c => code(c, rates)).filter(c => c && c !== src);
-        if (!src || dests.length === 0 || dests.some(d => !d))
+        const src = parsed.from;
+        const known = code => Boolean(code) && code in rates;
+        const dests = parsed.to
+            ? [parsed.to]
+            : this.api.settings.get('currencies').map(currencyCode).filter(c => known(c) && c !== src);
+        if (!known(src) || dests.length === 0 || !dests.every(known))
             return [];
         const when = GLib.DateTime.new_from_unix_local(this._rates.updated).format('%e %b').trim();
+        const from = `${formatGrouped(amount, 2)} ${src}`;
         return dests.map(dest => {
+            const rate = (rates[dest] / rates[src]).toPrecision(6);
+            const digits = currencyDigits(dest);
             const value = amount / rates[src] * rates[dest];
-            const text = value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            const copy = value.toFixed(2);
-            return {
-                title: `${text} ${dest}`,
-                subtitle: `${E.formatGrouped(amount, 2)} ${src} · rate ${(rates[dest] / rates[src]).toPrecision(6)} · ${when}`,
-                icon: 'accessories-calculator-symbolic',
-                copy,
-                activate: {copy},
-                preview: {
-                    kind: 'Currency',
-                    details: [['From', `${E.formatGrouped(amount, 2)} ${src}`], ['To', `${text} ${dest}`],
-                        ['Rate', (rates[dest] / rates[src]).toPrecision(6)], ['Rates from', when]],
-                },
-            };
+            const to = `${value.toLocaleString('en-US', {minimumFractionDigits: digits, maximumFractionDigits: digits})} ${dest}`;
+            return copyRow(to, `${from} · rate ${rate} · ${when}`, 'accessories-calculator-symbolic', {
+                copy: value.toFixed(digits),
+                preview: {kind: 'Currency', details: [['From', from], ['To', to], ['Rate', rate], ['Rates from', when]]},
+            });
         });
     }
 }
