@@ -10,10 +10,13 @@ export default class ColorsPlugin {
         this.api = api;
     }
 
-    query({query}) {
-        if (!/^(#|rgba?\(|hsla?\()/i.test(query.trim()))
+    query({query, forced}) {
+        let text = query.trim();
+        if (forced && /^([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(text))
+            text = `#${text}`;
+        if (!/^(#|rgba?\(|hsla?\()/i.test(text))
             return [];
-        const c = Color.parseColor(query);
+        const c = Color.parseColor(text);
         if (!c)
             return [];
         const hex = Color.toHex({...c, a: 1});

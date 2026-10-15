@@ -15,5 +15,9 @@
   "icon": "edit-paste-symbolic",
   "minQueryLength": 0,
   "completion": false,
-  "toggle": "feature-clipboard"
+  "toggle": "feature-clipboard",
+  "examples": [
+    {"query": "", "description": "Recent clipboard history"},
+    {"query": "password", "description": "Search the history"}
+  ]
 }

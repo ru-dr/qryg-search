@@ -2,7 +2,7 @@
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
-import {match} from './actions.js';
+import {ACTIONS, allowed, match} from './actions.js';
 
 Gio._promisify(Gio.DBusConnection.prototype, 'call');
 
@@ -91,8 +91,11 @@ export default class SessionPlugin {
             fallback();
     }
 
-    async query({query}) {
-        const found = match(query, await this._available());
+    async query({query, forced}) {
+        const available = await this._available();
+        const found = forced && !query
+            ? ACTIONS.filter(action => allowed(action, available)).map(action => ({action, score: 50}))
+            : match(query, available);
         return found.map(({action, score}) => ({
             id: action.id,
             title: action.title,

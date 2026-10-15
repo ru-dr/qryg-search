@@ -14,6 +14,11 @@
   "icon": "face-smile-symbolic",
   "minQueryLength": 2,
   "completion": false,
+  "examples": [
+    {"query": "fire", "description": "Find an emoji by name or keyword"},
+    {"query": "thumbs up", "description": "Several words"},
+    {"query": "", "description": "Popular emoji"}
+  ],
   "settings": [
     {
       "key": "skin-tone",

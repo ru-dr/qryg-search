@@ -4,6 +4,7 @@ import os
 import re
 
 API_VERSION = 1
+MAX_EXAMPLES = 10
 PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 KEYWORD = re.compile(r"^\S{1,12}$")
 POSITIONS = ["top", "after-apps", "bottom"]
@@ -12,9 +13,51 @@ SETTING_TYPES = ["bool", "int", "string", "strings", "choice"]
 KNOWN_KEYS = {
     "id", "name", "description", "version", "author", "api", "type", "main", "command", "keyword", "global",
     "position", "priority", "category", "icon", "minQueryLength", "completion", "timeout", "startupTimeout",
-    "persistent", "settings", "toggle",
+    "persistent", "settings", "toggle", "examples", "files",
 }
 SETTING_KEYS = {"key", "type", "default", "title", "description", "min", "max", "choices", "gsetting"}
+
+
+def is_word_keyword(keyword):
+    return bool(keyword) and keyword[0].isalnum()
+
+
+def example_text(keyword, query):
+    """What to type for an example, with the prefix the user has now."""
+    query = query.strip()
+    if not keyword:
+        return query
+    return f"{keyword} {query}".rstrip() if is_word_keyword(keyword) else f"{keyword}{query}"
+
+
+# Mirrors guideProblems() in lib/plugins/guide.js: every plugin needs a prefix and a usage guide.
+def guide_problems(manifest):
+    found = []
+    keyword = manifest.get("keyword")
+    if keyword is None or keyword == "":
+        found.append('keyword is required: the prefix that limits the search to this plugin, such as "wx"')
+    elif not (isinstance(keyword, str) and KEYWORD.match(keyword)):
+        found.append('keyword must be 1 to 12 characters without spaces, such as ">" or "calc"')
+    examples = manifest.get("examples")
+    if not isinstance(examples, list) or not examples:
+        found.append('examples is required: a list of {"query", "description"} entries that show how to use the plugin')
+        return found
+    if len(examples) > MAX_EXAMPLES:
+        found.append(f"examples can have at most {MAX_EXAMPLES} entries")
+    for index, example in enumerate(examples):
+        if not isinstance(example, dict):
+            found.append(f'examples[{index}] must be an object with "query" and "description"')
+        elif not isinstance(example.get("query"), str):
+            found.append(f"examples[{index}].query must be a string: what to type after the prefix")
+        elif not isinstance(example.get("description"), str) or not example["description"].strip():
+            found.append(f"examples[{index}].description is required")
+    return found
+
+
+def normalize_examples(examples):
+    kept = [e for e in examples if isinstance(e, dict) and isinstance(e.get("query"), str)
+            and isinstance(e.get("description"), str) and e["description"].strip()] if isinstance(examples, list) else []
+    return [{"query": e["query"].strip(), "description": e["description"].strip()} for e in kept[:MAX_EXAMPLES]]
 
 
 def is_int(value):
@@ -80,8 +123,7 @@ def validate(raw, folder, bundled=False):
     elif is_int(api) and api > API_VERSION:
         problems.append(f"needs plugin API {api}, this QryG supports {API_VERSION}; update QryG")
     keyword = m.get("keyword")
-    if keyword is not None and not (isinstance(keyword, str) and KEYWORD.match(keyword)):
-        problems.append('keyword must be 1 to 12 characters without spaces, such as ">" or "calc"')
+    problems.extend(guide_problems(m))
 
     for key in sorted(set(m) - KNOWN_KEYS):
         warnings.append(f"unknown field \"{key}\" is ignored")
@@ -114,6 +156,7 @@ def validate(raw, folder, bundled=False):
     kept = [s for i, s in enumerate(settings) if _check_setting(i, s, warnings)]
 
     m["keyword"] = keyword or None
+    m["examples"] = normalize_examples(m.get("examples"))
     m["position"] = m.get("position") if m.get("position") in POSITIONS else "bottom"
     m["priority"] = m["priority"] if is_int(m.get("priority")) else 50
     m["category"] = m.get("category") if m.get("category") in CATEGORIES else "general"

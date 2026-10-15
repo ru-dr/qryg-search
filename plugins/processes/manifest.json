@@ -14,5 +14,9 @@
   "category": "actions",
   "icon": "process-stop-symbolic",
   "minQueryLength": 0,
-  "completion": false
+  "completion": false,
+  "examples": [
+    {"query": "firefox", "description": "Find your processes. Enter asks one to quit"},
+    {"query": "", "description": "Your processes, by memory use"}
+  ]
 }

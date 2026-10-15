@@ -18,6 +18,7 @@ This guide covers **Plugin API v1**.
 - [Icons](#icons)
 - [Settings](#settings)
 - [Prefixes](#prefixes)
+- [Usage guide](#usage-guide)
 - [Debugging](#debugging)
 - [Sharing a plugin](#sharing-a-plugin)
 
@@ -29,7 +30,7 @@ qryg plugin new notes --type script --lang python  # Python
 qryg plugin new todo --type script --lang bash     # Bash
 ```
 
-This creates `~/.local/share/qryg-search/plugins/<id>/` with a manifest and a working starting file, then reloads plugins. Open QryG and type the prefix (by default the first word of the id, for example `weather hi`).
+This creates `~/.local/share/qryg-search/plugins/<id>/` with a manifest and a working starting file, then reloads plugins. Open QryG and type the prefix (by default the first word of the id, for example `weather hi`). Replace the starter `examples` in the manifest with your own: every plugin needs a prefix and a usage guide.
 
 After editing, run `qryg plugin reload` or press **Reload** in Preferences → Plugins. You don't need to log out, even for JavaScript.
 
@@ -73,6 +74,10 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
   "minQueryLength": 1,
   "completion": true,
   "timeout": 1500,
+  "examples": [
+    {"query": "paris", "description": "The weather in Paris"},
+    {"query": "", "description": "The weather where you are"}
+  ],
   "settings": []
 }
 ```
@@ -85,7 +90,8 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `main` | yes* | — | `js`: the module, ending in `.js`. `script`: an executable file in the folder (`chmod +x`). |
 | `command` | no | — | `script` only: an argv array used instead of `main`, such as `["node", "plugin.mjs"]`. |
 | `api` | no | `1` | The plugin API version it was written for. QryG refuses plugins that need a newer API. |
-| `keyword` | no | none | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
+| `keyword` | yes | — | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
+| `examples` | yes | — | The usage guide: 1 to 10 `{"query", "description"}` entries. See [Usage guide](#usage-guide). |
 | `global` | no | `true` | Show results without the prefix. Set this to `false` for anything noisy or slow. |
 | `position` | no | `"bottom"` | `"top"` (above apps), `"after-apps"`, or `"bottom"` (after GNOME's providers). |
 | `priority` | no | `50` | Order within a position. Lower comes first. |
@@ -497,14 +503,37 @@ qryg keyword weather default
 - When prefixes overlap, the longest one wins.
 - `qryg doctor` reports prefixes used by two plugins.
 
-Pick a short word over a symbol. Single symbols are scarce, and the bundled plugins already use `= > ? * :`.
+Every plugin needs a `keyword`. A manifest without one is not loaded and can't be installed. A plugin with `"global": true` still answers without its prefix; the prefix is how users reach it on purpose and see its guide.
+
+Pick a short word over a symbol. Single symbols are scarce, and the bundled plugins already use `= > ? * :`. Avoid a word that starts app names, because a word prefix followed by a space hides every other result.
+
+## Usage guide
+
+Every plugin needs `examples`: what to type, and what it does. A manifest without them is not loaded and can't be installed.
+
+```json
+"examples": [
+  {"query": "paris", "description": "The weather in Paris"},
+  {"query": "", "description": "The weather where you are"}
+]
+```
+
+- `query` is the text after the prefix. QryG adds the user's current prefix when it shows the example, so `paris` appears as `wx paris`, or `w paris` after `qryg keyword weather w`. An empty `query` means the prefix alone.
+- `description` is one short sentence.
+- Use 1 to 10 examples, most useful first, and make each one work: `qryg plugin test weather paris` runs it.
+
+The guide appears in three places:
+
+- **The search bar.** When the prefix is typed and your plugin returns no results, QryG shows the examples instead, closest to what was typed first. `Tab` completes the top one and `Enter` fills in the selected one. Return results for an empty query if your plugin has something better to show, like the bundled clipboard history.
+- **Preferences → Plugins**, under *How to use* on the plugin's row.
+- **`qryg plugin info ID`**, under *how to use*.
 
 ## Debugging
 
 ```bash
 journalctl --user -f -o cat | grep qryg-search   # api.log output, load errors, query errors
 qryg plugin list                          # state, prefix and folder of every plugin
-qryg plugin info weather                  # prefix, state, folder and settings
+qryg plugin info weather                  # prefix, state, folder, settings and usage guide
 qryg plugin validate weather              # check the manifest, by id or folder
 qryg plugin test weather paris            # run one query and print the results
 qryg plugin test weather paris --activate 1   # also show what Enter on result 1 does

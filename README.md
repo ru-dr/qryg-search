@@ -76,7 +76,7 @@ For development, `./bin/qryg install --link` symlinks the checkout instead.
 
 Type anything and every source is searched together. Calculator, units, currency, colours, time and generators answer on their own when the query looks like one of theirs. So do world clocks (`time tokyo`, `utc+2`) and session actions (`lock`, `restart`).
 
-A **prefix** limits the search to one plugin. Symbol prefixes work right away (`>ls`), and word prefixes need a space (`f report`).
+A **prefix** limits the search to one plugin. Symbol prefixes work right away (`>ls`), and word prefixes need a space (`f report`). Type a prefix on its own to see how to use that plugin. Every plugin's examples are also in **Preferences → Plugins** and `qryg plugin info ID`.
 
 | Prefix | Plugin | Example |
 |---|---|---|
@@ -89,6 +89,12 @@ A **prefix** limits the search to one plugin. Symbol prefixes work right away (`
 | `clip` | Clipboard | `clip password` |
 | `:` | Emoji | `:fire`, `:thumbs up` |
 | `kill` | Processes | `kill firefox` |
+| `conv` | Units | `conv 10 km to mi` |
+| `fx` | Currency | `fx 50 usd to inr` |
+| `col` | Colours | `col 0a84ff` |
+| `tz` | Time and world clocks | `tz tokyo` |
+| `gen` | Generators | `gen uuid`, `gen password 32` |
+| `session` | Session | `session` lists every action |
 
 Prefixes are yours to change:
 

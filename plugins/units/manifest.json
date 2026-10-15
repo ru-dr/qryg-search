@@ -7,9 +7,16 @@
   "api": 1,
   "type": "js",
   "main": "plugin.js",
+  "keyword": "conv",
   "position": "top",
   "priority": 20,
   "category": "actions",
   "icon": "accessories-calculator-symbolic",
-  "completion": false
+  "completion": false,
+  "examples": [
+    {"query": "10 km to mi", "description": "Convert, also without the prefix"},
+    {"query": "1 GiB to MB", "description": "Data sizes"},
+    {"query": "72 f to c", "description": "Temperature"},
+    {"query": "5 l in cups", "description": "Volume, area, speed, pressure, energy and more"}
+  ]
 }

@@ -4,6 +4,16 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+### Added
+
+- Every plugin has a prefix. New ones: `conv` for units, `fx` for currency, `col` for colours, `tz` for time and world clocks, `gen` for generators and `session` for session actions. They all still answer without the prefix.
+- A usage guide for every plugin: typing a prefix that matches nothing shows the plugin's examples, which `Tab` completes and `Enter` fills in. Preferences → Plugins shows them under *How to use*, and `qryg plugin info` under *how to use*.
+- `qryg plugin new` adds a starter `examples` list
+
+### Changed
+
+- **Breaking for plugin authors:** `keyword` and `examples` are now required in `manifest.json`. A plugin without them is not loaded, shows under *Not loaded* in preferences, and can't be installed. `qryg plugin validate` names what is missing. See [Usage guide](docs/PLUGINS.md#usage-guide).
+
 ## 1.1.0 - 2026-10-14
 
 ### Added
