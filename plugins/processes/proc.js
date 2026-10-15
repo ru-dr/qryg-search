@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Parsing /proc and matching processes. No GNOME imports, so it can be tested with node.
+// No GNOME imports, so it can be tested with node.
 
 // Killing one of these ends or breaks the session, so they are never listed.
 const PROTECTED = [
@@ -63,7 +63,6 @@ export function formatMemory(kb) {
     return `${kb} KB`;
 }
 
-// A process is {name, pid, argv, ...}. Returns 0 when it does not match.
 export function score(proc, query) {
     const q = query.toLowerCase().trim();
     if (!q)

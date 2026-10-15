@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Unit tables and conversion. No GNOME imports, so it can be tested with node.
+// No GNOME imports, so it can be tested with node.
 
 export const UNIT_DEFS = {
     length: {

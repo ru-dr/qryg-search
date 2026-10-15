@@ -24,7 +24,6 @@ export default class EmojiPlugin {
         this._loading = null;
     }
 
-    // Loads once. A failed load is tried again on the next query.
     _load() {
         this._loading ??= readText(GLib.build_filenamev([this.api.dir, 'emoji.json']))
             .then(text => Emoji.index(JSON.parse(text)))

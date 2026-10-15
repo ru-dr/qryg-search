@@ -19,7 +19,6 @@ const FAVORED_DIRS = new Set(['Desktop', 'Documents', 'Downloads', 'Pictures', '
 const RECENT_FILE = GLib.build_filenamev([GLib.get_user_data_dir(), 'recently-used.xbel']);
 const PREVIEW_ATTRS = 'standard::content-type,standard::size,standard::type,time::modified,thumbnail::path';
 const ENUMERATE_BATCH = 100;
-// The score of each match class: the whole name, the start of the name, the start of a word, anywhere.
 const CLASS_SCORES = [95, 80, 60, 40];
 
 class RecentFiles {
@@ -71,7 +70,6 @@ async function listDir(dir) {
     return found;
 }
 
-// What is directly in the home folder and the favoured folders, listed again after FRESH_TTL_US.
 class FreshFiles {
     constructor() {
         this._time = 0;
@@ -101,7 +99,6 @@ function isNoise(path, excluded) {
     return rel.split('/').some(seg => seg.startsWith('.') || SKIP_SEGMENTS.has(seg));
 }
 
-// Returns a function that gives the match class of a lowercase file name, from 0 (best) to 3.
 function nameMatcher(query) {
     const wordStart = new RegExp(`[\\s_.-]${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
     return name => {

@@ -23,7 +23,6 @@ def base_version_key(text):
 
 
 def latest_release(tags):
-    """The newest vX.Y.Z tag, skipping pre-releases like v1.2.0-rc1."""
     releases = [tag for tag in tags if version_key(tag)]
     return max(releases, key=version_key, default=None)
 
@@ -33,7 +32,6 @@ def git(*args):
 
 
 def check():
-    """Fetches from GitHub and returns what an update would do, without changing anything."""
     if not (REPO / ".git").exists():
         raise CliError(f"{REPO} is not a git checkout, so it can't update itself. Reinstall with:\n  {INSTALL_HINT}")
     git("fetch", "--quiet", "--tags", "--force", "origin")

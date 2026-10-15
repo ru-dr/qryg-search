@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// World clock lookups. No GNOME imports, so it can be tested with node.
+// No GNOME imports, so it can be tested with node.
 import {fold} from '../../lib/plugins/match.js';
 
 // Names people type that are not in the zone database, and abbreviations, which it does not resolve well.
@@ -64,18 +64,15 @@ function rows(text) {
     return text.split('\n').filter(line => line && !line.startsWith('#')).map(line => line.split('\t'));
 }
 
-// zone.tab or zone1970.tab: country codes, coordinates, zone id, comment.
 export function parseZoneTab(text) {
     return rows(text).filter(cols => cols.length >= 3)
         .map(([codes, , id]) => ({id, countries: codes.split(',')}));
 }
 
-// iso3166.tab: code and country name.
 export function parseCountries(text) {
     return Object.fromEntries(rows(text).filter(cols => cols.length >= 2).map(([code, name]) => [code, name]));
 }
 
-// The "L target alias" lines of tzdata.zi.
 export function parseLinks(text) {
     return text.split('\n').filter(line => line.startsWith('L ')).map(line => {
         const [, target, alias] = line.trim().split(/\s+/);
@@ -122,7 +119,6 @@ export function buildIndex({zones = [], countries = {}, links = []} = {}) {
     return {names, meta};
 }
 
-// "+5:30", "utc+2", "gmt -0800", "UTC" → minutes east of UTC, or null.
 export function parseOffset(text) {
     const t = text.toLowerCase().replace(/\s+/g, '');
     if (/^(?:utc|gmt|z)$/.test(t))
@@ -137,7 +133,6 @@ export function parseOffset(text) {
     return (m[1] === '-' ? -1 : 1) * (hours * 60 + minutes);
 }
 
-// Returns the place part of a world clock query, or null when the query is not one.
 export function parsePlace(query) {
     const q = query.trim().replace(/\s+/g, ' ');
     let m = new RegExp(`^${TRIGGER} (?:in|at) (.+)$`, 'i').exec(q) ??
@@ -149,7 +144,6 @@ export function parsePlace(query) {
     return m ? q : null;
 }
 
-// Zone ids for a place, best first, with a score from 0 to 100.
 export function lookup(index, place) {
     const key = normalize(place);
     if (key.length < 2)
@@ -178,7 +172,6 @@ export function formatOffset(minutes) {
     return `UTC${sign}${String(Math.floor(abs / 60)).padStart(2, '0')}:${String(abs % 60).padStart(2, '0')}`;
 }
 
-// The difference between a zone and the local one, both in minutes east of UTC.
 export function difference(zoneMinutes, localMinutes) {
     const diff = zoneMinutes - localMinutes;
     if (diff === 0)

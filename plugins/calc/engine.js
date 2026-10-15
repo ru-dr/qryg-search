@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// When a query is math, and base conversion. No GNOME imports, so it can be tested with node.
+// No GNOME imports, so it can be tested with node.
 import {FUNCTION_NAMES, evaluate} from '../../lib/plugins/math.js';
 
 const PLAIN_NUMBER = /^[\d.,_\s]+$/;
@@ -18,7 +18,6 @@ export function canCalculate(src) {
     }
 }
 
-// `text` groups binary digits by four, and `copy` is the same without spaces.
 export function toBase(x, base) {
     const n = BigInt(Math.trunc(x));
     const neg = n < 0n;

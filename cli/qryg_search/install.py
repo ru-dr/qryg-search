@@ -15,7 +15,6 @@ def _is_checkout_itself():
 
 
 def install(link=False):
-    """Installs the extension and links the CLI. Returns the CLI link and the settings migration result."""
     if not (REPO / "metadata.json").exists():
         raise CliError(f"run install from a QryG checkout, {REPO} has no metadata.json")
     if not _is_checkout_itself():
