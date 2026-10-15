@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
+import re
 import sys
 import tempfile
 import unittest
@@ -10,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "cli"))
 from qryg_search.bookmarks import kind_of, normalize  # noqa: E402
 from qryg_search.commands import _accelerator  # noqa: E402
 from qryg_search.manifest import is_word_keyword  # noqa: E402
-from qryg_search.settings import parse_variant, quote, string_list  # noqa: E402
+from qryg_search.settings import RESULT_KINDS, Settings, parse_variant, quote, string_list  # noqa: E402
 from qryg_search.styles import StyleStore  # noqa: E402
 from qryg_search.ui import CliError  # noqa: E402
 from qryg_search.update import base_version_key, latest_release, version_key  # noqa: E402
@@ -28,6 +29,20 @@ class VariantTests(unittest.TestCase):
     def test_quote(self):
         self.assertEqual(quote("it's"), "'it\\'s'")
         self.assertEqual(string_list(["a", "b"]), "['a', 'b']")
+
+
+class ResultPriorityTests(unittest.TestCase):
+    def test_kinds_match_the_extension(self):
+        source = (Path(__file__).resolve().parent.parent / "lib/results/providers.js").read_text()
+        kinds = re.search(r"RESULT_KINDS = Object.freeze\(\[([^\]]*)\]", source).group(1)
+        self.assertEqual(tuple(re.findall(r"'([a-z]+)'", kinds)), RESULT_KINDS)
+
+    def test_set_checks_kinds(self):
+        settings = Settings()
+        settings.__dict__["schema_dir"] = Path(__file__).resolve().parent.parent / "schemas"  # not the installed copy
+        self.assertEqual(settings.to_variant("result-priority", "files, apps"), "['files', 'apps']")
+        with self.assertRaises(CliError):
+            settings.to_variant("result-priority", "files, documents")
 
 
 class BookmarkPathTests(unittest.TestCase):

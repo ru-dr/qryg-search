@@ -4,6 +4,18 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+### Added
+
+- Result priority: choose which kinds of result come first and give the Top Hit, in Preferences → Features or with `qryg set result-priority 'files, apps'`. Apps come first by default, then actions, files, other results and the clipboard.
+
+### Changed
+
+- Apps now come before actions, files and other results unless you change the result priority. Before, an exact file name could push files above apps.
+
+### Fixed
+
+- The scrollbar no longer covers the right end of the selected row
+
 ## 2.1.1 - 2026-10-15
 
 ### Fixed

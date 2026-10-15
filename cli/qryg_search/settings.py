@@ -8,6 +8,9 @@ from .paths import EXTENSION_DIR, REPO, SCHEMA
 from .system import run
 from .ui import CliError
 
+# Mirrors RESULT_KINDS in lib/results/providers.js.
+RESULT_KINDS = ("apps", "actions", "files", "general", "clipboard")
+
 TRUE_WORDS = {"on", "true", "yes", "1", "enable", "enabled"}
 FALSE_WORDS = {"off", "false", "no", "0", "disable", "disabled"}
 
@@ -130,7 +133,11 @@ class Settings:
                 raise CliError("accent-color expects #rrggbb, for example #0a84ff")
             return quote(raw)
         if kind == "as":
-            return string_list(item.strip() for item in raw.split(",") if item.strip())
+            items = [item.strip() for item in raw.split(",") if item.strip()]
+            unknown = [item for item in items if key == "result-priority" and item not in RESULT_KINDS]
+            if unknown:
+                raise CliError(f"result-priority takes {', '.join(RESULT_KINDS)}, not {', '.join(unknown)}")
+            return string_list(items)
         raise CliError(f"unsupported type {kind}")
 
     def bump(self, key):

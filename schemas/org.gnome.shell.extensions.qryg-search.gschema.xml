@@ -102,6 +102,11 @@
       <summary>Live preview allowlist</summary>
       <description>Commands that may run while typing. An entry matches the first words of the command. Previews run without a shell, capped at 2 seconds and 6000 characters, and never run anything containing shell syntax, globs, = or output options.</description>
     </key>
+    <key name="result-priority" type="as">
+      <default>['apps', 'actions', 'files', 'general', 'clipboard']</default>
+      <summary>Result priority</summary>
+      <description>Which kinds of result come first, and so give the Top Hit: apps, actions, files, general and clipboard. Missing kinds keep their default place.</description>
+    </key>
     <key name="feature-top-hit" type="b">
       <default>true</default>
       <summary>Top Hit</summary>
