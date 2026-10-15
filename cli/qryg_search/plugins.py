@@ -3,10 +3,11 @@ import json
 import re
 import shutil
 import tempfile
+import time
 from pathlib import Path
 
 from .paths import EXTENSION_DIR, REPO, USER_PLUGINS
-from .settings import string_list
+from .settings import FALSE_WORDS, TRUE_WORDS, quote, string_list
 from .system import run
 from .ui import CliError
 
@@ -189,11 +190,16 @@ class PluginCatalog:
             return self._settings.set_text(definition["gsetting"], raw)
         kind = definition["type"]
         if kind == "bool":
-            value = raw.lower() in ("on", "true", "yes", "1")
+            if raw.lower() not in TRUE_WORDS | FALSE_WORDS:
+                raise CliError(f"{definition['key']} expects on or off")
+            value = raw.lower() in TRUE_WORDS
         elif kind == "int":
             if not re.fullmatch(r"-?\d+", raw):
                 raise CliError(f"{definition['key']} expects a whole number")
             value = int(raw)
+            low, high = definition.get("min"), definition.get("max")
+            if (low is not None and value < low) or (high is not None and value > high):
+                raise CliError(f"{definition['key']} must be {describe_range(low, high)}")
         elif kind == "strings":
             value = [item.strip() for item in raw.split(",") if item.strip()]
         elif kind == "choice":
@@ -207,8 +213,11 @@ class PluginCatalog:
         self._settings.set_json("plugin-settings", store)
         return value
 
-    def reload(self):
-        self._settings.bump("plugins-reload")
+    def reload(self, plugin_id=None):
+        if plugin_id:
+            self._settings.set_variant("plugins-reload-id", quote(f"{plugin_id}#{time.time_ns()}"))
+        else:
+            self._settings.bump("plugins-reload")
 
     def create(self, plugin_id, kind, language, author):
         if not PLUGIN_ID.match(plugin_id):
@@ -288,6 +297,12 @@ class PluginCatalog:
             raise CliError(f"{manifest['id']} is bundled with QryG; disable it instead: qryg-search plugin disable {manifest['id']}")
         remove_path(manifest["_dir"])
         self.reload()
+
+
+def describe_range(low, high):
+    if low is not None and high is not None:
+        return f"between {low} and {high}"
+    return f"at least {low}" if low is not None else f"at most {high}"
 
 
 def remove_path(path):

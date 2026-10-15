@@ -14,6 +14,7 @@
   "category": "actions",
   "icon": "utilities-terminal-symbolic",
   "completion": false,
+  "timeout": 3000,
   "settings": [
     {
       "key": "live-preview",

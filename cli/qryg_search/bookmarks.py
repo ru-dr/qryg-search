@@ -55,3 +55,5 @@ class BookmarkStore:
         if len(kept) == len(items):
             raise CliError("no bookmark with that name")
         self.save(kept)
+        removed = {b.get("name") for b in items} - {b.get("name") for b in kept}
+        return [name for name in names if name in removed]

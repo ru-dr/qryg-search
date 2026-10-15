@@ -1,17 +1,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
+import json
 import os
+from pathlib import Path
 
 from . import VERSION
 from .bookmarks import BookmarkStore, kind_of
 from .doctor import run_doctor, shortcut_conflicts
 from .install import install, uninstall
+from .manifest import load as load_manifest
 from .paths import BOOKMARKS_FILE, EXTENSION_DIR, USER_PLUGINS, USER_STYLES, UUID
 from .plugins import PluginCatalog, is_word_keyword
+from .runner import resolve_settings, run_js, run_script
 from .settings import Settings, quote
 from .sources import SourceCatalog
 from .styles import StyleStore
 from .system import extension_state, is_active, run
-from .ui import CliError, bold, dim, fmt, ok, table, warn
+from .ui import CliError, bad, bold, dim, fmt, ok, table, warn
 
 COMMANDS = []
 MODIFIER_WORDS = {"super": "<Super>", "ctrl": "<Control>", "control": "<Control>", "alt": "<Alt>", "shift": "<Shift>"}
@@ -252,13 +256,14 @@ def keyword(ctx, args):
     ok(f"{manifest['id']} prefix = {ctx.plugins.keyword(manifest) or 'none'}")
 
 
-@command("plugin", "list, enable, disable, install, remove, create or configure plugins", aliases=["plugins"],
+@command("plugin", "list, enable, disable, install, remove, create, configure, validate or test plugins", aliases=["plugins"],
          arguments=[
-             ("action", {"nargs": "?", "choices": ["list", "info", "enable", "disable", "install", "update", "remove", "new", "config", "reload", "dir"]}),
+             ("action", {"nargs": "?", "choices": ["list", "info", "enable", "disable", "install", "update", "remove", "new", "config", "reload", "dir", "validate", "test"]}),
              ("rest", {"nargs": "*"}),
              ("--type", {"choices": ["js", "script"], "default": "js"}),
              ("--lang", {"choices": ["python", "bash"], "default": "python"}),
              ("--link", {"action": "store_true", "help": "install: symlink a local folder"}),
+             ("--activate", {"type": int, "metavar": "N", "help": "test: also show what Enter on result N does"}),
          ])
 def plugin(ctx, args):
     action = args.action or "list"
@@ -357,9 +362,75 @@ def _plugin_remove(ctx, args):
     ok(f"removed {m['id']}")
 
 
-def _plugin_reload(ctx, _args):
+def _plugin_reload(ctx, args):
+    if args.rest:
+        manifest = ctx.plugins.get(args.rest[0])
+        ctx.plugins.reload(manifest["id"])
+        ok(f"{manifest['id']} reloaded")
+        return
     ctx.plugins.reload()
     ok("plugins reloaded")
+
+
+def _plugin_folder(ctx, target):
+    folder = Path(target).expanduser()
+    if folder.name == "manifest.json":
+        folder = folder.parent
+    if folder.is_dir() and (os.sep in target or target.startswith(".") or (folder / "manifest.json").exists()):
+        return folder.resolve(), False
+    manifest = ctx.plugins.get(target)
+    return manifest["_dir"], manifest["_bundled"]
+
+
+def _plugin_validate(ctx, args):
+    folder, bundled = _plugin_folder(ctx, _require_id(args))
+    manifest, problems, warnings = load_manifest(folder, bundled)
+    name = manifest["id"] if manifest and isinstance(manifest.get("id"), str) else folder.name
+    for problem in problems:
+        bad(problem)
+    for warning in warnings:
+        warn(warning)
+    if problems:
+        raise CliError(f"{name} would not load ({len(problems)} problem{'s' if len(problems) > 1 else ''})")
+    ok(f"{name} is valid" + (f", with {len(warnings)} warning{'s' if len(warnings) > 1 else ''}" if warnings else ""))
+
+
+def _plugin_test(ctx, args):
+    if len(args.rest) < 1:
+        raise CliError("usage: qryg-search plugin test ID|PATH QUERY [--activate N]")
+    folder, bundled = _plugin_folder(ctx, args.rest[0])
+    manifest, problems, _warnings = load_manifest(folder, bundled)
+    if problems:
+        raise CliError(f"not loaded: {'; '.join(problems)}")
+    query = " ".join(args.rest[1:]).strip()
+    prefix = ctx.plugins.keyword(manifest) if manifest["id"] in ctx.plugins.all() else manifest["keyword"]
+    raw = f"{prefix}{' ' if is_word_keyword(prefix) else ''}{query}" if prefix else query
+    catalog = ctx.plugins
+    settings = resolve_settings(manifest, lambda definition: catalog.setting(manifest, definition))
+    runner = run_js if manifest["type"] == "js" else run_script
+    run = runner(manifest, query, settings, activate=args.activate, raw=raw)
+    print(bold(f"{manifest['name']}") + dim(f"  {len(run.results)} result{'' if len(run.results) == 1 else 's'} in {run.ms} ms"))
+    for number, result in enumerate(run.results, start=1):
+        score = f"  score {result['score']}" if isinstance(result.get("score"), (int, float)) else ""
+        print(f"  {number:>2}  {bold(result['title'])}{dim(score)}")
+        if result.get("subtitle"):
+            print(f"      {result['subtitle']}")
+        details = {k: result[k] for k in ("copy", "activate", "path") if result.get(k) is not None}
+        if result.get("actions"):
+            details["actions"] = [a.get("id") for a in result["actions"] if isinstance(a, dict)]
+        if details:
+            print(dim(f"      {json.dumps(details, ensure_ascii=False)[:200]}"))
+    if run.activation:
+        print(bold(f"Enter on {args.activate}") + dim(f"  via {run.activation['via']}"))
+        print(f"  would apply {json.dumps(run.activation['effects'], ensure_ascii=False)}")
+        for name, value in run.activation.get("calls") or []:
+            print(f"  called api.{name}({json.dumps(value, ensure_ascii=False)})")
+    for line in run.logs:
+        print(dim(f"  log: {line}"))
+    if run.stderr.strip():
+        print(dim("  stderr:"))
+        for line in run.stderr.strip().splitlines()[-20:]:
+            print(dim(f"    {line}"))
 
 
 PLUGIN_ACTIONS = {
@@ -374,6 +445,8 @@ PLUGIN_ACTIONS = {
     "remove": _plugin_remove,
     "reload": _plugin_reload,
     "dir": lambda _ctx, _args: print(USER_PLUGINS),
+    "validate": _plugin_validate,
+    "test": _plugin_test,
 }
 
 
@@ -399,8 +472,11 @@ def bookmark(ctx, args):
     elif action in ("rm", "remove"):
         if not args.rest:
             raise CliError("usage: qryg-search bookmark rm NAME")
-        ctx.bookmarks.remove(args.rest)
-        ok(f"removed {', '.join(args.rest)}")
+        removed = ctx.bookmarks.remove(args.rest)
+        ok(f"removed {', '.join(removed)}")
+        for name in args.rest:
+            if name not in removed:
+                warn(f"no bookmark named {name}")
     else:
         print(BOOKMARKS_FILE)
 

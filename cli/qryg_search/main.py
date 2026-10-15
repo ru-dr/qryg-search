@@ -31,6 +31,8 @@ def main(argv=None):
             return 0
         args.run(context, args)
         return 0
-    except CliError as error:
+    except (CliError, OSError) as error:
         bad(str(error))
         return 1
+    except KeyboardInterrupt:
+        return 130

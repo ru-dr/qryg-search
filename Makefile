@@ -1,5 +1,5 @@
 UUID := qryg-search@ru-dr
-JS := $(shell find lib plugins prefs examples -name '*.js') extension.js prefs.js
+JS := $(shell find lib plugins prefs examples cli -name '*.js') extension.js prefs.js
 
 .PHONY: check lint test syntax schema install link zip clean
 
@@ -15,7 +15,7 @@ schema:
 	@echo "schema ok"
 
 lint:
-	@npx --no-install eslint lib plugins prefs examples tests extension.js prefs.js eslint.config.js
+	@npx --no-install eslint lib plugins prefs examples cli tests extension.js prefs.js eslint.config.js
 	@echo "lint ok"
 
 test:

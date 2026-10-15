@@ -42,6 +42,16 @@
       <summary>Plugin reload counter</summary>
       <description>Changing this rescans the plugin folders. `qryg-search plugin reload` bumps it.</description>
     </key>
+    <key name="plugins-reload-id" type="s">
+      <default>''</default>
+      <summary>Reload one plugin</summary>
+      <description>Setting this to a plugin id, optionally followed by # and any text, reloads only that plugin. `qryg-search plugin reload ID` sets it.</description>
+    </key>
+    <key name="plugin-status" type="s">
+      <default>'{}'</default>
+      <summary>Plugin status</summary>
+      <description>JSON object of plugin load failures and runtime errors, keyed by plugin id. Written by the extension and shown in Preferences → Plugins.</description>
+    </key>
     <key name="feature-keywords" type="b">
       <default>true</default>
       <summary>Prefix keywords</summary>
