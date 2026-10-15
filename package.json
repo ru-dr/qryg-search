@@ -1,6 +1,6 @@
 {
   "name": "qryg-search",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "private": true,
   "description": "QryG Search: a plugin-based launcher for GNOME Shell",
   "license": "GPL-3.0-or-later",
