@@ -1,0 +1,16 @@
+{
+  "id": "session",
+  "name": "Session",
+  "description": "Lock, suspend, hibernate, log out, restart and power off. Log out, restart and power off ask first.",
+  "version": "1.0.0",
+  "author": "QryG Search",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "position": "top",
+  "priority": 60,
+  "category": "actions",
+  "icon": "system-shutdown-symbolic",
+  "minQueryLength": 3,
+  "completion": false
+}

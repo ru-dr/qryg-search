@@ -7,6 +7,10 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 ### Added
 
 - `Ctrl + Tab` / `Ctrl + Shift + Tab` cycle the filters, a color picker and a Reset appearance button in Preferences, and screen reader names for the preview and inline completion
+- **Session plugin:** lock, suspend, hibernate (when available), log out, restart and power off from the search bar. Log out, restart and power off show GNOME's confirmation dialog.
+- **Emoji plugin:** a bundled emoji picker with every emoji from the Unicode CLDR data, on `:`. Searches names and keywords, with a skin tone setting and buttons to copy the name or code points.
+- **Processes plugin:** `kill firefox` lists your own processes with their memory use. `Enter` sends SIGTERM, and *Force kill* sends SIGKILL. Session processes are never listed.
+- **Time plugin:** world clocks, like `time tokyo`, `time in new york`, `now utc` and `utc+5:30`, with a *World clocks* setting for zones to show with `time`. Unix timestamps also show how long ago they were.
 
 ### Changed
 
