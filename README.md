@@ -2,31 +2,44 @@
 
 # QryG Search
 
-Pronounced "query-gee".
+**A keyboard-first launcher for GNOME Shell, with plugins and custom styles.**
 
-A macOS-inspired, keyboard-first launcher for GNOME Shell, with a plugin system and custom styles.
+Pronounced "query-gee". `Super + Space`, type, `Enter`.
 
-`Super + Space`, type, `Enter`.
+[![Release](https://shieldcn.dev/github/ru-dr/qryg-search/release.svg)](https://github.com/ru-dr/qryg-search/releases/latest)
+[![CI](https://shieldcn.dev/github/ru-dr/qryg-search/ci.svg)](https://github.com/ru-dr/qryg-search/actions/workflows/ci.yml)
+[![License](https://shieldcn.dev/github/ru-dr/qryg-search/license.svg)](LICENSE)
+[![GNOME Shell 48–51](https://shieldcn.dev/badge/GNOME_Shell-48--51-4A86CF.svg?logo=gnome)](#requirements)
+[![Plugin API v1](https://shieldcn.dev/badge/plugin_API-v1-8A2BE2.svg)](docs/PLUGINS.md)
+[![Stars](https://shieldcn.dev/github/ru-dr/qryg-search/stars.svg)](https://github.com/ru-dr/qryg-search/stargazers)
 
-![GNOME Shell 48–51](https://img.shields.io/badge/GNOME_Shell-48--51-4a86cf?logo=gnome&logoColor=white)
-![Wayland](https://img.shields.io/badge/Wayland-ready-success)
-![Plugin API v1](https://img.shields.io/badge/plugin_API-v1-8a2be2)
-![License GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)
-[![CI](https://github.com/ru-dr/qryg-search/actions/workflows/ci.yml/badge.svg)](https://github.com/ru-dr/qryg-search/actions/workflows/ci.yml)
+[Install](#install) · [Usage](#usage) · [Plugins](#plugins) · [Styles](#styles) · [Configure](#configure) · [Wiki](https://github.com/ru-dr/qryg-search/wiki) · [Changelog](CHANGELOG.md)
 
 ![QryG Search](docs/screenshots/hero.png)
 
 </div>
 
----
+## Contents
+
+- [Why](#why)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Usage](#usage)
+- [Plugins](#plugins)
+- [Styles](#styles)
+- [Configure](#configure)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License and credits](#license-and-credits)
 
 ## Why
 
-GNOME's Overview search is good, but it is tied to the Overview. QryG Search replaces it with a floating search bar that opens over any window, even fullscreen video, and adds the things you would otherwise need five different tools for: a calculator, unit and currency conversion, colour tools, a live shell, bookmarks, clipboard history and fast file search.
+GNOME's search is good, but it lives inside the Overview. QryG Search replaces it with a floating search bar that opens over any window, even fullscreen video. It also adds the things you would otherwise need five different tools for: a calculator, unit and currency conversion, colour tools, a live shell, bookmarks, clipboard history and fast file search.
 
 Every one of those features is a **plugin**. You can turn each one off, give it your own prefix, or write your own in JavaScript, Python, Bash or anything else that can read and write JSON.
 
-## Highlights
+## Features
 
 <table>
 <tr>
@@ -35,7 +48,7 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="docs/screenshots/shell.png" alt="Shell"><br><b>Live shell.</b> <code>&gt; ls -la</code> shows the output as you type. Only safe, read-only commands run in the preview.</td>
-<td width="50%" valign="top"><img src="docs/screenshots/currency.png" alt="Currency"><br><b>Currency and units.</b> <code>50 usd to inr</code>, <code>10 km to mi</code>, <code>1 GiB to MB</code>.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/currency.png" alt="Currency"><br><b>Currency and units.</b> <code>50 usd to inr</code>, <code>$20 to eur</code>, <code>10 km to mi</code>, <code>1 GiB to MB</code>.</td>
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="docs/screenshots/bookmarks.png" alt="Bookmarks"><br><b>Bookmarks.</b> Files, folders, locations, commands and sites. <code>Ctrl + D</code> on any result adds one.</td>
@@ -44,50 +57,86 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 </table>
 
 - **Top Hit**, inline completion, a preview pane, and a bar icon that follows the selection
+- **15 bundled plugins**, each with a prefix and a built-in usage guide: type a prefix on its own to see how it works
 - Filters for Apps, Files, Actions and Clipboard (`Super + 1` to `4`)
 - Row actions: open in a new window, show in folder, copy, bookmark
 - Fast file search with `plocate`, plus recent files and a live view of your home folders
 - Opens over fullscreen apps, and `Super + Space` never leaks a key press into the app behind it
 - Uses your system font and follows the light or dark theme, with your own accent colour
-- A full CLI (`qryg`) and a preferences window, and every change applies live
-- Custom styles: drop a CSS file in `~/.config/qryg-search/styles`, and it applies live as you edit it ([guide](docs/STYLES.md))
+- A full CLI (`qryg`) and a preferences window; every change applies live
+- Custom styles: drop a CSS file in `~/.config/qryg-search/styles` and it applies as you edit it
 
+## Requirements
+
+- GNOME Shell 48, 49, 50 or 51
+- `git` and `python3` for the installer and the `qryg` CLI
+- Optional: `plocate` for file search, and the Copyous extension for clipboard history
 
 ## Install
-
-You need GNOME Shell 48 or newer, `git` and `python3`. `plocate` (file search) and the Copyous extension (clipboard) are optional.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ru-dr/qryg-search/main/install.sh | bash
 ```
 
-This downloads the latest release to `~/.local/share/qryg-search/src`, installs the extension and links the `qryg` CLI into `~/.local/bin`. Read [`install.sh`](install.sh) first if you like; it is short. Log out and back in, because Wayland only loads new extensions at login. Then run:
+This downloads the latest release to `~/.local/share/qryg-search/src`, installs the extension, and links the `qryg` CLI into `~/.local/bin`. [`install.sh`](install.sh) is short, so feel free to read it first.
+
+Wayland only loads new extensions at login, so log out and back in. Then:
 
 ```bash
 qryg enable
-qryg doctor              # checks dependencies, shortcut and prefix conflicts
+qryg doctor              # checks dependencies, the shortcut and prefix conflicts
 ```
 
-To update:
+<details>
+<summary><b>Other ways to install</b></summary>
+
+**From a clone**, to install that checkout:
+
+```bash
+git clone https://github.com/ru-dr/qryg-search.git
+cd qryg-search
+./bin/qryg install       # or --link to symlink it, for development
+```
+
+**From the release zip**, without the CLI:
+
+```bash
+gnome-extensions install --force qryg-search@ru-dr.shell-extension.zip
+```
+
+Download the zip from the [latest release](https://github.com/ru-dr/qryg-search/releases/latest).
+
+**Follow the main branch** instead of releases: put `QRYG_REF=main` before `bash` in the install line.
+
+</details>
+
+### Update
 
 ```bash
 qryg update --check      # is there a newer release?
 qryg update              # install it, then log out and back in
 ```
 
-`QRYG_REF=main` before `bash` in the install line follows the main branch instead of releases, and `qryg update` then follows it too.
+### Uninstall
 
-From a clone, `./bin/qryg install` installs that checkout, and `./bin/qryg install --link` symlinks it, for development.
+```bash
+qryg uninstall           # removes the extension and the CLI link, keeps your settings
+```
 
-## Using it
+## Usage
 
-Type anything and every source is searched together. Calculator, units, currency, colours, time and generators answer on their own when the query looks like one of theirs. So do world clocks (`time tokyo`, `utc+2`) and session actions (`lock`, `restart`).
+Press `Super + Space` and type. Every source is searched together: apps, files, Settings, and the plugins that recognise what you typed, such as `2^10`, `10 km to mi` or `time tokyo`.
 
-A **prefix** limits the search to one plugin. Symbol prefixes work right away (`>ls`), and word prefixes need a space (`f report`). Type a prefix on its own to see how to use that plugin. Every plugin's examples are also in **Preferences → Plugins** and `qryg plugin info ID`.
+A **prefix** limits the search to one plugin. Symbol prefixes work right away (`>ls`), and word prefixes need a space (`f report`). **Type a prefix on its own to see that plugin's examples**: `Tab` completes the top one and `Enter` fills in the one you pick.
 
 | Prefix | Plugin | Example |
 |---|---|---|
-| `=` | Calculator, only | `= 2pi` |
+| `=` | Calculator | `= 2pi` |
+| `conv` | Units | `conv 10 km to mi` |
+| `fx` | Currency | `fx 50 usd to inr` |
+| `col` | Colours | `col 0a84ff` |
+| `tz` | Time and world clocks | `tz tokyo` |
+| `gen` | Generators | `gen uuid`, `gen password 32` |
 | `>` | Shell | `> git status` |
 | `?` | Web | `? gnome shell`, `yt lofi` |
 | `*` | Bookmarks | `* docs`, `*+ ~/Projects` adds one |
@@ -96,14 +145,9 @@ A **prefix** limits the search to one plugin. Symbol prefixes work right away (`
 | `clip` | Clipboard | `clip password` |
 | `:` | Emoji | `:fire`, `:thumbs up` |
 | `kill` | Processes | `kill firefox` |
-| `conv` | Units | `conv 10 km to mi` |
-| `fx` | Currency | `fx 50 usd to inr` |
-| `col` | Colours | `col 0a84ff` |
-| `tz` | Time and world clocks | `tz tokyo` |
-| `gen` | Generators | `gen uuid`, `gen password 32` |
 | `session` | Session | `session` lists every action |
 
-Prefixes are yours to change:
+Prefixes are yours to change, here or in **Preferences → Plugins**:
 
 ```bash
 qryg keyword                 # list them
@@ -111,8 +155,6 @@ qryg keyword files /         # files now uses "/"
 qryg keyword windows none    # no prefix
 qryg keyword files default   # back to "f"
 ```
-
-You can also change them in **Preferences → Plugins**.
 
 ### Keys
 
@@ -132,9 +174,9 @@ You can also change them in **Preferences → Plugins**.
 | `Ctrl + Tab`, `Ctrl + Shift + Tab` | Next or previous filter |
 | `Backspace` on an empty bar | Clear the filter |
 
-## What is a plugin, and what is GNOME
+## Plugins
 
-QryG does not use GNOME's search UI, but it does reuse GNOME's **search providers**: apps, Settings panels, and anything an app registers (Files, Calendar, Contacts and others). Everything else is a QryG plugin.
+QryG reuses GNOME's **search providers** (apps, Settings panels and anything an app registers, like Files, Calendar or Contacts). Everything else is a QryG plugin.
 
 | Comes from GNOME | QryG plugins (bundled) |
 |---|---|
@@ -144,28 +186,23 @@ QryG does not use GNOME's search UI, but it does reuse GNOME's **search provider
 ```bash
 qryg source off contacts calendar
 qryg plugin disable currency
+qryg plugin info time            # prefix, settings and how to use it
 ```
 
-## Plugins
+### Write your own
 
-A plugin is a folder with a `manifest.json` and either a JavaScript module or any executable. Drop it in `~/.local/share/qryg-search/plugins/`. It can add results, previews, row buttons and its own settings, which appear in the preferences window automatically.
+A plugin is a folder with a `manifest.json` and either a JavaScript module or any executable, in `~/.local/share/qryg-search/plugins/`. It can add results, previews, row buttons and its own settings, which appear in Preferences automatically. Every plugin declares a prefix and a few usage examples:
 
-```bash
-qryg plugin new weather                          # JavaScript
-qryg plugin new todo --type script --lang python # or Python, or --lang bash
-qryg plugin install https://github.com/you/qryg-search-plugin-x
-qryg plugin install https://github.com/you/plugins/tree/main/weather   # or a .zip, or a manifest.json URL
-qryg plugin reload
-qryg plugin validate weather                     # check the manifest
-qryg plugin test weather paris                   # run one query outside GNOME Shell
+```json
+{
+  "id": "hello",
+  "name": "Hello",
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "hello",
+  "examples": [["world", "Says hello and copies it"]]
+}
 ```
-
-Preferences → Plugins → *Install a plugin* takes the same links. Both show what a plugin is and where it comes from before installing it.
-
-> [!WARNING]
-> Plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first.
-
-A complete JavaScript plugin:
 
 ```js
 export default class Hello {
@@ -180,19 +217,25 @@ export default class Hello {
 }
 ```
 
-A complete script plugin, in any language:
-
-```python
-#!/usr/bin/env python3
-import json, sys
-
-request = json.loads(sys.stdin.readline())
-if sys.argv[1] == "query":
-    q = request["query"]
-    print(json.dumps({"results": [{"title": q.upper(), "copy": q.upper()}]}))
+```bash
+qryg plugin new weather                          # JavaScript starter
+qryg plugin new todo --type script --lang python # or Python, or --lang bash
+qryg plugin validate weather                     # check the manifest
+qryg plugin test weather paris                   # run one query outside GNOME Shell
+qryg plugin reload weather
 ```
 
-**📘 Read the [plugin guide](docs/PLUGINS.md)** for the manifest, the API, previews, actions and settings. Working examples are in [`examples/plugins`](examples/plugins).
+Install other people's plugins from a folder, a git repository, a repository subfolder, an archive or a `manifest.json` link, with the CLI or **Preferences → Plugins → Install a plugin**. Both show what the plugin is and where it comes from before installing:
+
+```bash
+qryg plugin install https://github.com/you/plugins/tree/main/weather
+qryg plugin update
+```
+
+> [!WARNING]
+> Plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first.
+
+📘 The [plugin guide](docs/PLUGINS.md) covers the manifest, the API, previews, actions and settings. Working examples are in [`examples/plugins`](examples/plugins).
 
 ## Styles
 
@@ -208,21 +251,18 @@ qryg style use mine
 .list-search-result:selected { background-color: rgba(255, 255, 255, 0.12); }
 ```
 
-**🎨 Read the [style guide](docs/STYLES.md)** for every selector. Examples are in [`examples/styles`](examples/styles).
+🎨 The [style guide](docs/STYLES.md) lists every selector. Examples are in [`examples/styles`](examples/styles).
 
 ## Configure
 
-Everything applies live, with no logout.
+Everything applies live, with no logout. Use **Preferences** (`qryg prefs`) or the CLI:
 
 ```bash
 qryg                          # status
-qryg prefs                    # graphical preferences
 qryg list                     # every setting
-qryg style use mine           # a custom CSS style, see docs/STYLES.md
 qryg theme dark               # default | dark | light
 qryg accent '#ff375f'
 qryg shortcut super+space
-qryg set corner-radius 18
 qryg set width 760
 qryg set max-rows 7
 qryg set search-engine 'https://duckduckgo.com/?q=%s'
@@ -233,42 +273,44 @@ qryg bookmark add docs ~/Documents
 qryg reset --all
 ```
 
-The full reference is in the [wiki](https://github.com/ru-dr/qryg-search/wiki).
+The full reference is in the [wiki](https://github.com/ru-dr/qryg-search/wiki/CLI-Reference).
 
 ## Troubleshooting
 
-- **The bar is invisible, or typing does nothing.** Another extension is hiding the Overview search, such as Just Perfection's *Search* option. Turn that option back on.
-- **`Super + Space` does nothing.** Run `qryg doctor`, which lists anything else bound to the same keys.
-- **A new file doesn't show up.** plocate reindexes once a day. Run `sudo updatedb` to refresh it now.
-- **A plugin doesn't load.** It is listed under *Not loaded* in Preferences → Plugins, with the reason. `journalctl --user -f -o cat | grep qryg-search` shows its log.
-- **Code changes don't apply.** On Wayland, GNOME Shell only reloads extension code at login. Settings and plugin reloads are live.
+| Problem | Fix |
+|---|---|
+| The bar is invisible, or typing does nothing | Another extension is hiding the Overview search, such as Just Perfection's *Search* option. Turn that option back on. |
+| `Super + Space` does nothing | Run `qryg doctor`; it lists anything else bound to the same keys. |
+| A new file doesn't show up | plocate reindexes once a day. Run `sudo updatedb` to refresh it now. |
+| A plugin doesn't load | It is listed under *Not loaded* in Preferences → Plugins, with the reason. `qryg plugin validate ID` explains it too. |
+| Code changes don't apply | On Wayland, GNOME Shell only reloads extension code at login. Settings and plugin reloads are live. |
 
-## Development
+Logs: `journalctl --user -f -o cat | grep qryg-search`. More in the [wiki](https://github.com/ru-dr/qryg-search/wiki/Troubleshooting).
+
+## Contributing
+
+Issues, plugins, styles and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and release process.
 
 ```bash
-npm install          # ESLint, for make lint
-make check           # syntax, schema, lint, JS and Python tests
-make link            # install as a symlink
-make zip             # build an extensions.gnome.org bundle
+npm install          # ESLint
+make check           # syntax, schema, lint, JavaScript and Python tests
+make link            # install this checkout as a symlink
+make zip             # build the extension bundle
 ```
-
-The code is laid out like this:
 
 | Path | Contents |
 |---|---|
-| `lib/core` | Config, patching and stylesheets |
+| `lib/core` | Config, paths, patching and stylesheets |
 | `lib/overview` | Taking over Overview search |
 | `lib/results` | Result list layout and preview |
 | `lib/launcher` | The window, keys and actions |
-| `lib/plugins` | The plugin host |
+| `lib/plugins` | The plugin host, manifest rules and shared plugin helpers |
 | `plugins/` | Bundled plugins |
 | `prefs/` | Preferences pages |
 | `cli/` | The `qryg` tool |
 
-Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and release process.
+## License and credits
 
-## Credits
+QryG Search is licensed under [GPL-3.0-or-later](LICENSE).
 
-QryG started as a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin. Built by the community, for the community.
-
-Licensed under [GPL-3.0-or-later](LICENSE).
+It started as a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin. Built by the community, for the community.
