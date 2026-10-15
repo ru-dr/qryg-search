@@ -7,7 +7,7 @@ check: syntax schema lint test
 
 syntax:
 	@for f in $(JS); do node --check $$f || exit 1; done
-	@python3 -m py_compile bin/qryg-search cli/qryg_search/*.py scripts/*.py examples/plugins/*/*.py
+	@python3 -m py_compile bin/qryg cli/qryg_search/*.py scripts/*.py examples/plugins/*/*.py
 	@echo "syntax ok"
 
 schema:
@@ -23,10 +23,10 @@ test:
 	@python3 -m unittest discover -s tests -p 'test_*.py'
 
 install:
-	@./bin/qryg-search install
+	@./bin/qryg install
 
 link:
-	@./bin/qryg-search install --link
+	@./bin/qryg install --link
 
 zip:
 	@rm -f $(UUID).shell-extension.zip

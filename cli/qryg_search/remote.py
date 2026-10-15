@@ -311,7 +311,7 @@ def locate(root, spec):
         raise CliError(f"this archive holds several plugins ({', '.join(names)}); unpack it and install one folder")
     prefix = f"{spec['subdir']}/" if spec["subdir"] else ""
     example = subfolder_url(spec["repo"], f"{prefix}{names[0]}", spec["ref"] or "HEAD")
-    hint = f", for example:\n  qryg-search plugin install {example}" if example else ""
+    hint = f", for example:\n  qryg plugin install {example}" if example else ""
     raise CliError(f"this repository holds several plugins ({', '.join(names)}); pass the URL of one folder{hint}")
 
 

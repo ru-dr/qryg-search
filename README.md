@@ -49,7 +49,7 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 - Fast file search with `plocate`, plus recent files and a live view of your home folders
 - Opens over fullscreen apps, and `Super + Space` never leaks a key press into the app behind it
 - Uses your system font and follows the light or dark theme, with your own accent colour
-- A full CLI (`qryg-search`) and a preferences window, and every change applies live
+- A full CLI (`qryg`) and a preferences window, and every change applies live
 - Custom styles: drop a CSS file in `~/.config/qryg-search/styles`, and it applies live as you edit it ([guide](docs/STYLES.md))
 
 
@@ -60,17 +60,17 @@ You need GNOME Shell 48 or newer. `plocate` (file search) and the Copyous extens
 ```bash
 git clone https://github.com/ru-dr/qryg-search.git
 cd qryg-search
-./bin/qryg-search install       # installs the extension and links the qryg-search CLI into ~/.local/bin
+./bin/qryg install       # installs the extension and links the qryg CLI into ~/.local/bin
 ```
 
 Log out and back in, because Wayland only loads new extensions at login. Then run:
 
 ```bash
-qryg-search enable
-qryg-search doctor              # checks dependencies, shortcut and prefix conflicts
+qryg enable
+qryg doctor              # checks dependencies, shortcut and prefix conflicts
 ```
 
-For development, `./bin/qryg-search install --link` symlinks the checkout instead.
+For development, `./bin/qryg install --link` symlinks the checkout instead.
 
 ## Using it
 
@@ -93,10 +93,10 @@ A **prefix** limits the search to one plugin. Symbol prefixes work right away (`
 Prefixes are yours to change:
 
 ```bash
-qryg-search keyword                 # list them
-qryg-search keyword files /         # files now uses "/"
-qryg-search keyword windows none    # no prefix
-qryg-search keyword files default   # back to "f"
+qryg keyword                 # list them
+qryg keyword files /         # files now uses "/"
+qryg keyword windows none    # no prefix
+qryg keyword files default   # back to "f"
 ```
 
 You can also change them in **Preferences → Plugins**.
@@ -126,11 +126,11 @@ QryG does not use GNOME's search UI, but it does reuse GNOME's **search provider
 | Comes from GNOME | QryG plugins (bundled) |
 |---|---|
 | Apps, Settings, and app search providers | calc, units, currency, colors, generators, time, session, emoji, processes, shell, web, bookmarks, files, windows, clipboard |
-| `qryg-search source` lists and toggles them | `qryg-search plugin` lists and toggles them |
+| `qryg source` lists and toggles them | `qryg plugin` lists and toggles them |
 
 ```bash
-qryg-search source off contacts calendar
-qryg-search plugin disable currency
+qryg source off contacts calendar
+qryg plugin disable currency
 ```
 
 ## Plugins
@@ -138,13 +138,13 @@ qryg-search plugin disable currency
 A plugin is a folder with a `manifest.json` and either a JavaScript module or any executable. Drop it in `~/.local/share/qryg-search/plugins/`. It can add results, previews, row buttons and its own settings, which appear in the preferences window automatically.
 
 ```bash
-qryg-search plugin new weather                          # JavaScript
-qryg-search plugin new todo --type script --lang python # or Python, or --lang bash
-qryg-search plugin install https://github.com/you/qryg-search-plugin-x
-qryg-search plugin install https://github.com/you/plugins/tree/main/weather   # or a .zip, or a manifest.json URL
-qryg-search plugin reload
-qryg-search plugin validate weather                     # check the manifest
-qryg-search plugin test weather paris                   # run one query outside GNOME Shell
+qryg plugin new weather                          # JavaScript
+qryg plugin new todo --type script --lang python # or Python, or --lang bash
+qryg plugin install https://github.com/you/qryg-search-plugin-x
+qryg plugin install https://github.com/you/plugins/tree/main/weather   # or a .zip, or a manifest.json URL
+qryg plugin reload
+qryg plugin validate weather                     # check the manifest
+qryg plugin test weather paris                   # run one query outside GNOME Shell
 ```
 
 Preferences → Plugins → *Install a plugin* takes the same links. Both show what a plugin is and where it comes from before installing it.
@@ -186,8 +186,8 @@ if sys.argv[1] == "query":
 The look is plain CSS. A style is one file in `~/.config/qryg-search/styles/`. Your rules override the built-in look, and every save applies straight away.
 
 ```bash
-qryg-search style new mine        # start from an example
-qryg-search style use mine
+qryg style new mine        # start from an example
+qryg style use mine
 ```
 
 ```css
@@ -202,22 +202,22 @@ qryg-search style use mine
 Everything applies live, with no logout.
 
 ```bash
-qryg-search                          # status
-qryg-search prefs                    # graphical preferences
-qryg-search list                     # every setting
-qryg-search style use mine           # a custom CSS style, see docs/STYLES.md
-qryg-search theme dark               # default | dark | light
-qryg-search accent '#ff375f'
-qryg-search shortcut super+space
-qryg-search set corner-radius 18
-qryg-search set width 760
-qryg-search set max-rows 7
-qryg-search set search-engine 'https://duckduckgo.com/?q=%s'
-qryg-search set currencies 'USD, EUR, INR'
-qryg-search set terminal kitty
-qryg-search feature off bounce preview
-qryg-search bookmark add docs ~/Documents
-qryg-search reset --all
+qryg                          # status
+qryg prefs                    # graphical preferences
+qryg list                     # every setting
+qryg style use mine           # a custom CSS style, see docs/STYLES.md
+qryg theme dark               # default | dark | light
+qryg accent '#ff375f'
+qryg shortcut super+space
+qryg set corner-radius 18
+qryg set width 760
+qryg set max-rows 7
+qryg set search-engine 'https://duckduckgo.com/?q=%s'
+qryg set currencies 'USD, EUR, INR'
+qryg set terminal kitty
+qryg feature off bounce preview
+qryg bookmark add docs ~/Documents
+qryg reset --all
 ```
 
 The full reference is in the [wiki](https://github.com/ru-dr/qryg-search/wiki).
@@ -225,7 +225,7 @@ The full reference is in the [wiki](https://github.com/ru-dr/qryg-search/wiki).
 ## Troubleshooting
 
 - **The bar is invisible, or typing does nothing.** Another extension is hiding the Overview search, such as Just Perfection's *Search* option. Turn that option back on.
-- **`Super + Space` does nothing.** Run `qryg-search doctor`, which lists anything else bound to the same keys.
+- **`Super + Space` does nothing.** Run `qryg doctor`, which lists anything else bound to the same keys.
 - **A new file doesn't show up.** plocate reindexes once a day. Run `sudo updatedb` to refresh it now.
 - **A plugin doesn't load.** It is listed under *Not loaded* in Preferences → Plugins, with the reason. `journalctl --user -f -o cat | grep qryg-search` shows its log.
 - **Code changes don't apply.** On Wayland, GNOME Shell only reloads extension code at login. Settings and plugin reloads are live.
@@ -250,7 +250,7 @@ The code is laid out like this:
 | `lib/plugins` | The plugin host |
 | `plugins/` | Bundled plugins |
 | `prefs/` | Preferences pages |
-| `cli/` | The `qryg-search` tool |
+| `cli/` | The `qryg` tool |
 
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and release process.
 

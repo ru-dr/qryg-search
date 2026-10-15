@@ -26,15 +26,15 @@ def install(link=False):
     if result is None or result.returncode != 0:
         raise CliError("glib-compile-schemas failed")
     BIN_DIR.mkdir(parents=True, exist_ok=True)
-    cli = BIN_DIR / "qryg-search"
+    cli = BIN_DIR / "qryg"
     remove_path(cli)
-    cli.symlink_to(REPO / "bin" / "qryg-search")
+    cli.symlink_to(REPO / "bin" / "qryg")
     return cli
 
 
 def uninstall():
     run("gnome-extensions", "disable", "qryg-search@ru-dr")
     remove_path(EXTENSION_DIR)
-    cli = BIN_DIR / "qryg-search"
-    if cli.is_symlink() and cli.resolve() == (REPO / "bin" / "qryg-search").resolve():
+    cli = BIN_DIR / "qryg"
+    if cli.is_symlink() and cli.resolve() == (REPO / "bin" / "qryg").resolve():
         cli.unlink()

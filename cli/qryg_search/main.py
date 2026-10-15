@@ -8,8 +8,8 @@ from .ui import CliError, bad
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(prog="qryg-search", description="QryG Search configuration tool.")
-    parser.add_argument("--version", action="version", version=f"qryg-search {VERSION}")
+    parser = argparse.ArgumentParser(prog="qryg", description="QryG Search configuration tool.")
+    parser.add_argument("--version", action="version", version=f"qryg {VERSION}")
     subcommands = parser.add_subparsers(dest="command", metavar="command")
     for spec in COMMANDS:
         sub = subcommands.add_parser(spec["name"], help=spec["help"], aliases=spec["aliases"])

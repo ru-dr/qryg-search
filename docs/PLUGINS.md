@@ -24,14 +24,14 @@ This guide covers **Plugin API v1**.
 ## Quick start
 
 ```bash
-qryg-search plugin new weather                            # JavaScript
-qryg-search plugin new notes --type script --lang python  # Python
-qryg-search plugin new todo --type script --lang bash     # Bash
+qryg plugin new weather                            # JavaScript
+qryg plugin new notes --type script --lang python  # Python
+qryg plugin new todo --type script --lang bash     # Bash
 ```
 
 This creates `~/.local/share/qryg-search/plugins/<id>/` with a manifest and a working starting file, then reloads plugins. Open QryG and type the prefix (by default the first word of the id, for example `weather hi`).
 
-After editing, run `qryg-search plugin reload` or press **Reload** in Preferences → Plugins. You don't need to log out, even for JavaScript.
+After editing, run `qryg plugin reload` or press **Reload** in Preferences → Plugins. You don't need to log out, even for JavaScript.
 
 The finished examples in [`examples/plugins`](../examples/plugins) are a good place to start:
 
@@ -41,7 +41,7 @@ The finished examples in [`examples/plugins`](../examples/plugins) are a good pl
 | `emoji` | Python script | The script protocol, a choice setting, preview details. QryG bundles a full JavaScript emoji plugin with the same id, which this example replaces when installed. |
 | `fd-files` | Python script | Another file search backend, using `fd` and falling back to `find`. Change its id to `files` to replace the bundled one. |
 
-Install one with `qryg-search plugin install examples/plugins/emoji`.
+Install one with `qryg plugin install examples/plugins/emoji`.
 
 ## How a plugin runs
 
@@ -97,7 +97,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `startupTimeout` | no | `5000` | Persistent `script` only: extra milliseconds allowed while the process starts, from 0 to 30000. |
 | `toggle` | no | — | The name of a boolean QryG setting that also turns the plugin on and off. Used by bundled plugins. |
 | `icon` | no | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
-| `description`, `version`, `author` | no | — | Shown in preferences and `qryg-search plugin info`. |
+| `description`, `version`, `author` | no | — | Shown in preferences and `qryg plugin info`. |
 | `settings` | no | `[]` | User settings. See [Settings](#settings). |
 | `files` | no | `[]` | Other files the plugin needs, as paths relative to the manifest, such as `["lib/api.js", "icons/logo.svg"]`. Only used when someone installs from a `manifest.json` URL. See [Sharing a plugin](#sharing-a-plugin). |
 
@@ -141,7 +141,7 @@ export default class Weather {
 | `activate(result, action)` | no | When a result has no `run` or `activate` field. `action` is an action `id` or `null`. Return [effects](#effects) or `null`. |
 | `available()` | no | Return `false` to hide the plugin's filter button, for example when a dependency is missing. |
 | `enable()` | no | After loading when the plugin is on, and whenever the user turns it back on. |
-| `disable()` | no | When the user turns the plugin off in preferences or with `qryg-search plugin disable`. The plugin stays loaded, so free anything heavy here and restore it in `enable()`. |
+| `disable()` | no | When the user turns the plugin off in preferences or with `qryg plugin disable`. The plugin stays loaded, so free anything heavy here and restore it in `enable()`. |
 | `destroy()` | no | On reload, when the extension is disabled, and at logout. Cancel timers, close files and disconnect signals here. `disable()` is not called first. |
 
 `query` receives a context object:
@@ -304,7 +304,7 @@ for line in sys.stdin:
     print(json.dumps({"id": request["id"], **reply}), flush=True)
 ```
 
-The `emoji` example and `qryg-search plugin new --type script` support both modes, so you can switch with one manifest field.
+The `emoji` example and `qryg plugin new --type script` support both modes, so you can switch with one manifest field.
 
 ## Results
 
@@ -476,8 +476,8 @@ Settings declared in the manifest appear under the plugin in Preferences → Plu
 Values are stored for you, and invalid values fall back to `default`. That includes an `int` outside `min` and `max`. Read them with `api.settings.get(key)` in JavaScript, or from `settings` in each script request.
 
 ```bash
-qryg-search plugin config weather              # show settings
-qryg-search plugin config weather city Berlin  # change one
+qryg plugin config weather              # show settings
+qryg plugin config weather city Berlin  # change one
 ```
 
 The CLI refuses values that would fall back: a number outside `min` and `max`, a choice that isn't listed, or a `bool` that isn't a word like `on`, `off`, `true` or `false`.
@@ -487,15 +487,15 @@ The CLI refuses values that would fall back: a number outside `min` and `max`, a
 The `keyword` in the manifest is only a default. Users can change it, or remove it, without touching your plugin:
 
 ```bash
-qryg-search keyword weather w
-qryg-search keyword weather none
-qryg-search keyword weather default
+qryg keyword weather w
+qryg keyword weather none
+qryg keyword weather default
 ```
 
 - A prefix that starts with a letter or digit, such as `wx`, needs a space after it: `wx paris`.
 - A symbol prefix, such as `~`, works without one: `~paris`.
 - When prefixes overlap, the longest one wins.
-- `qryg-search doctor` reports prefixes used by two plugins.
+- `qryg doctor` reports prefixes used by two plugins.
 
 Pick a short word over a symbol. Single symbols are scarce, and the bundled plugins already use `= > ? * :`.
 
@@ -503,13 +503,13 @@ Pick a short word over a symbol. Single symbols are scarce, and the bundled plug
 
 ```bash
 journalctl --user -f -o cat | grep qryg-search   # api.log output, load errors, query errors
-qryg-search plugin list                          # state, prefix and folder of every plugin
-qryg-search plugin info weather                  # prefix, state, folder and settings
-qryg-search plugin validate weather              # check the manifest, by id or folder
-qryg-search plugin test weather paris            # run one query and print the results
-qryg-search plugin test weather paris --activate 1   # also show what Enter on result 1 does
-qryg-search plugin reload weather                # reload one plugin
-qryg-search plugin reload                        # reload every plugin
+qryg plugin list                          # state, prefix and folder of every plugin
+qryg plugin info weather                  # prefix, state, folder and settings
+qryg plugin validate weather              # check the manifest, by id or folder
+qryg plugin test weather paris            # run one query and print the results
+qryg plugin test weather paris --activate 1   # also show what Enter on result 1 does
+qryg plugin reload weather                # reload one plugin
+qryg plugin reload                        # reload every plugin
 ```
 
 - `plugin validate` takes an id or a folder. It prints the problems that stop a plugin loading, and warnings for unknown fields and values that QryG quietly replaces with a default.
@@ -524,7 +524,7 @@ qryg-search plugin reload                        # reload every plugin
 > [!WARNING]
 > Plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first.
 
-Publish the plugin folder anywhere QryG can fetch it from. `qryg-search plugin install` works out what a source is from its shape:
+Publish the plugin folder anywhere QryG can fetch it from. `qryg plugin install` works out what a source is from its shape:
 
 | Source | Example | What QryG does |
 |---|---|---|
@@ -535,12 +535,12 @@ Publish the plugin folder anywhere QryG can fetch it from. `qryg-search plugin i
 | A `manifest.json` URL | `https://raw.githubusercontent.com/you/plugins/main/weather/manifest.json` | Downloads the manifest, then `main` and every path in `files`, from next to it. A script `main` is made executable. |
 
 ```bash
-qryg-search plugin install https://github.com/you/qryg-search-weather
-qryg-search plugin install https://github.com/you/plugins/tree/main/weather
-qryg-search plugin install ./my-local-folder --link    # symlink, for development
-qryg-search plugin update                              # update every plugin that has a recorded source
-qryg-search plugin update weather
-qryg-search plugin remove weather
+qryg plugin install https://github.com/you/qryg-search-weather
+qryg plugin install https://github.com/you/plugins/tree/main/weather
+qryg plugin install ./my-local-folder --link    # symlink, for development
+qryg plugin update                              # update every plugin that has a recorded source
+qryg plugin update weather
+qryg plugin remove weather
 ```
 
 If a repository has no `manifest.json` at its root, QryG looks one level down and in `plugins/`. One plugin there is installed. If there are several, QryG lists them and asks for the URL of one folder.
@@ -549,14 +549,14 @@ Before anything is written, QryG checks the manifest (`id`, `name`, `type`, `mai
 
 Archives are checked before they are unpacked: no absolute paths, no `..`, no links pointing outside the plugin, and at most 50 MB. Downloads time out after 30 seconds.
 
-The source is recorded in `.qryg-search-source.json` inside the installed folder, as `{"source": "…", "kind": "git" | "subdir" | "archive" | "manifest" | "folder", "ref": "main" | null}`, which is what `qryg-search plugin update` fetches again.
+The source is recorded in `.qryg-search-source.json` inside the installed folder, as `{"source": "…", "kind": "git" | "subdir" | "archive" | "manifest" | "folder", "ref": "main" | null}`, which is what `qryg plugin update` fetches again.
 
 In the preferences window, **Plugins → Install a plugin** takes the same sources. It shows the same summary before installing, then reloads plugins. It needs `git` for repositories, `tar` for `.tar.*` archives and `unzip` for `.zip` archives.
 
 Before publishing, check the following:
 
 - `id` is unique and `api` is `1`
-- `version` goes up with every release, so `qryg-search plugin update` can report it
+- `version` goes up with every release, so `qryg plugin update` can report it
 - if you share a `manifest.json` link, `files` lists every file besides `main`
 - `global` is `false`, unless the plugin is fast and rarely noisy
 - network calls are cached and cancellable

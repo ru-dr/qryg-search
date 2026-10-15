@@ -39,13 +39,13 @@ def shortcut_conflicts(accelerator):
 def _check_extension():
     state = extension_state(UUID)
     if state is None and (EXTENSION_DIR / "metadata.json").exists():
-        warn("installed, log out and back in to load it, then: qryg-search enable")
+        warn("installed, log out and back in to load it, then: qryg enable")
     elif state is None:
-        bad("extension not installed, run `qryg-search install`")
+        bad("extension not installed, run `qryg install`")
     elif is_active(state):
         ok(f"extension {state.lower()}")
     else:
-        warn(f"extension state {state}, log out and back in, then `qryg-search enable`")
+        warn(f"extension state {state}, log out and back in, then `qryg enable`")
     if is_active(extension_state("spotlight@nin")):
         warn("the original Spotlight extension is also enabled: gnome-extensions disable spotlight@nin")
 
@@ -77,11 +77,11 @@ def _check_overview_search():
 def _check_style(settings):
     name = settings.get("style")
     if name and not (USER_STYLES / f"{name}.css").exists():
-        warn(f"style {name} not found in {USER_STYLES}, using the built-in look. Fix: qryg-search style off")
+        warn(f"style {name} not found in {USER_STYLES}, using the built-in look. Fix: qryg style off")
 
 
 def run_doctor(settings, catalog):
-    print(bold("qryg-search doctor"))
+    print(bold("qryg doctor"))
     _check_extension()
     _check_style(settings)
     _check_plocate()
@@ -100,4 +100,4 @@ def run_doctor(settings, catalog):
             used.setdefault(keyword.lower(), []).append(manifest["id"])
     for keyword, owners in used.items():
         if len(owners) > 1:
-            warn(f"prefix {keyword} is used by {', '.join(owners)}; change one with `qryg-search keyword`")
+            warn(f"prefix {keyword} is used by {', '.join(owners)}; change one with `qryg keyword`")
