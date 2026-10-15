@@ -525,7 +525,7 @@ Every plugin needs `examples`: pairs of what to type and what it does. A manifes
 
 The guide appears in three places:
 
-- **The search bar.** When the prefix is typed and your plugin returns no results, QryG shows the examples instead, closest to what was typed first. `Tab` completes the top one and `Enter` fills in the selected one. Return results for an empty query if your plugin has something better to show, like the bundled clipboard history.
+- **The search bar.** The prefix alone, like `wx ` or `=`, shows the examples first and your plugin's results for an empty query after them. So does a query your plugin has no results for, or one that fails, with the examples closest to what was typed first. This works the same for every plugin. `Tab` completes the top example and `Enter` fills in the selected one. An example of the prefix alone is left out of the bar, because it is already typed, but it stays in the preview.
 - **Preferences → Plugins**, under *How to use* on the plugin's row.
 - **`qryg plugin info ID`**, under *how to use*.
 
