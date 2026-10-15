@@ -352,7 +352,7 @@ def _plugin_install(ctx, args):
 def _confirm_install(yes, manifest, spec, target, existing):
     for label, value in remote.card(manifest, spec["source"], target, existing):
         print(f"  {label.lower():<9} {bold(value) if label == 'Name' else value}")
-    warn("only install plugins you trust: a plugin can read your files and act as you")
+    warn(remote.install_warning(spec["source"]))
     if yes:
         return True
     try:

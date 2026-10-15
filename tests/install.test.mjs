@@ -66,6 +66,7 @@ test('archive listings are checked for unsafe entries', () => {
 });
 
 test('the confirmation card names the risk', () => {
+    assert.equal(R.installWarning(CASES.warning.source), CASES.warning.expect);
     const rows = Object.fromEntries(R.card({id: 'w', name: 'W', type: 'js'}, 'https://x', '/p/w', null));
     assert.match(rows.Type, /inside GNOME Shell/);
     assert.equal(rows.Replaces, 'nothing, it is new');

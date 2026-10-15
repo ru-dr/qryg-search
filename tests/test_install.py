@@ -18,6 +18,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "cli"))
 
 from qryg_search import plugins, remote  # noqa: E402
+from qryg_search.commands import _confirm_install  # noqa: E402
 from qryg_search.ui import CliError  # noqa: E402
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "install"
@@ -314,6 +315,14 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("runs as your user", rows["Type"])
         rows = dict(remote.card(manifest, "x", self.user / "greet", {"id": "greet", "name": "Greet", "version": "0.9"}))
         self.assertEqual(rows["Replaces"], "the installed Greet 0.9")
+
+    def test_warning_is_always_shown(self):
+        self.assertEqual(remote.install_warning(CASES["warning"]["source"]), CASES["warning"]["expect"])
+        spec = remote.classify(str(self.source))
+        with mock.patch("sys.stdout", new_callable=io.StringIO) as out:
+            self.assertTrue(_confirm_install(True, remote.check(GREET, 1), spec, self.user / "greet", None))
+        self.assertIn(remote.install_warning(str(self.source)), out.getvalue())
+        self.assertIn("runs as your user", out.getvalue())
 
 
 if __name__ == "__main__":

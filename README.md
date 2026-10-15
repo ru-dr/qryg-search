@@ -149,6 +149,9 @@ qryg-search plugin test weather paris                   # run one query outside 
 
 Preferences → Plugins → *Install a plugin* takes the same links. Both show what a plugin is and where it comes from before installing it.
 
+> [!WARNING]
+> Plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first.
+
 A complete JavaScript plugin:
 
 ```js

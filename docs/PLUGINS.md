@@ -521,6 +521,9 @@ qryg-search plugin reload                        # reload every plugin
 
 ## Sharing a plugin
 
+> [!WARNING]
+> Plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first.
+
 Publish the plugin folder anywhere QryG can fetch it from. `qryg-search plugin install` works out what a source is from its shape:
 
 | Source | Example | What QryG does |
@@ -542,7 +545,7 @@ qryg-search plugin remove weather
 
 If a repository has no `manifest.json` at its root, QryG looks one level down and in `plugins/`. One plugin there is installed. If there are several, QryG lists them and asks for the URL of one folder.
 
-Before anything is written, QryG checks the manifest (`id`, `name`, `type`, `main`, and `api` no newer than QryG's) and shows what it is about to install: the name, id, version, author, what the plugin type can do, where it comes from, the folder it goes to, and the plugin it replaces. It then asks `Install? [y/N]`. Pass `--yes` (`-y`) to skip the question; without a terminal, such as in a script, `--yes` is required. The new copy is built beside the old one and swapped in, so a failed install leaves the old plugin as it was.
+Before anything is written, QryG checks the manifest (`id`, `name`, `type`, `main`, and `api` no newer than QryG's) and shows what it is about to install: the name, id, version, author, what the plugin type can do, where it comes from, the folder it goes to, and the plugin it replaces, followed by the warning above with the source to review. It then asks `Install? [y/N]`. Pass `--yes` (`-y`) to skip the question; without a terminal, such as in a script, `--yes` is required. The new copy is built beside the old one and swapped in, so a failed install leaves the old plugin as it was.
 
 Archives are checked before they are unpacked: no absolute paths, no `..`, no links pointing outside the plugin, and at most 50 MB. Downloads time out after 30 seconds.
 

@@ -21,7 +21,7 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 - Persistent script plugins: a `startupTimeout` manifest field, a `{"method": "ready"}` message, and `{"method": "error"}` messages shown in preferences
 - `qryg-search plugin install` takes a repository folder URL (`…/tree/main/plugins/name`), a `.zip`, `.tar.gz`, `.tgz` or `.tar.xz` URL, or a `manifest.json` URL, besides a folder or git repository
 - Preferences → Plugins → *Install a plugin*, with the same sources
-- A summary of the plugin and its source before installing, with an `Install? [y/N]` question; `--yes` skips it
+- A summary of the plugin and its source, and a warning to review its code, before installing, with an `Install? [y/N]` question; `--yes` skips it
 - An optional `files` manifest key: the files to fetch when installing from a `manifest.json` URL
 - `qryg-search plugin update` works for every kind of source
 

@@ -33,6 +33,9 @@ SUBDIR = re.compile(
     r"/(?P<mode>tree|blob|src/(?:branch|tag|commit))/(?P<ref>[^/?#]+)(?P<path>/[^?#]*)?(?:[?#].*)?$")
 TREE_STYLES = {"gitlab.com": "/-/tree/", "codeberg.org": "/src/branch/"}
 IGNORED = {".git", "__MACOSX"}
+WARNING = ("Warning: plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to "
+           "your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the "
+           "code first: {source}")
 RISKS = {
     "js": "JavaScript: runs inside GNOME Shell with full access to your session",
     "script": "Script: runs as your user, with your permissions",
@@ -152,6 +155,10 @@ def check(folder, api_version):
     if found:
         raise CliError("this plugin cannot be installed: " + "; ".join(found))
     return manifest
+
+
+def install_warning(source):
+    return WARNING.format(source=source)
 
 
 def card(manifest, source, target, existing):

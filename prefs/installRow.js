@@ -3,16 +3,21 @@ import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import {fetchPlugin, install, discard} from '../lib/plugins/installer.js';
+import {installWarning} from '../lib/plugins/remote.js';
 import {group, escape} from './widgets.js';
-
-const WARNING = 'Only install plugins you trust: a plugin can read your files and act as you.';
 
 function toast(window, title) {
     window.add_toast(new Adw.Toast({title: escape(title), timeout: 5}));
 }
 
 function confirm(window, fetched) {
+    const box = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 12});
+    box.append(new Gtk.Label({
+        label: installWarning(fetched.source), wrap: true, xalign: 0, selectable: true,
+        css_classes: ['warning', 'heading'],
+    }));
     const list = new Gtk.ListBox({selection_mode: Gtk.SelectionMode.NONE, css_classes: ['boxed-list']});
+    box.append(list);
     for (const [label, value] of fetched.card) {
         const row = new Adw.ActionRow({title: escape(label), subtitle: escape(value), css_classes: ['property']});
         row.subtitle_selectable = true;
@@ -20,8 +25,7 @@ function confirm(window, fetched) {
     }
     const dialog = new Adw.AlertDialog({
         heading: `Install ${fetched.manifest.name}?`,
-        body: WARNING,
-        extra_child: list,
+        extra_child: box,
         default_response: 'cancel',
         close_response: 'cancel',
     });
@@ -87,5 +91,6 @@ export function installGroup({window, settings}, onInstalled) {
     row.connect('entry-activated', () => start().catch(logError));
     button.connect('clicked', () => start().catch(logError));
     return group('Install a plugin', [row],
-        'Paste a git repository, a repository folder (…/tree/main/plugins/name), a .zip or .tar.gz link, or a manifest.json link.');
+        'Paste a git repository, a repository folder (…/tree/main/plugins/name), a .zip or .tar.gz link, or a manifest.json link. ' +
+        'Plugins run code on your computer: only install plugins from sources you trust, and read the code first.');
 }

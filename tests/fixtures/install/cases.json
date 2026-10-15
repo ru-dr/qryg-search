@@ -1,4 +1,8 @@
 {
+  "warning": {
+    "source": "https://example.com/weather.zip",
+    "expect": "Warning: plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first: https://example.com/weather.zip"
+  },
   "classify": [
     {"source": "./examples/plugins/hello", "expect": {"kind": "folder", "source": "./examples/plugins/hello"}},
     {"source": "~/code/weather", "expect": {"kind": "folder"}},
