@@ -304,6 +304,37 @@
   font-size: 11px;
   color: rgba(235, 235, 245, 0.85);
 }
+.qryg-search-container .qryg-search-preview-example {
+  spacing: 3px;
+  padding: 6px 8px;
+  margin-top: 2px;
+  border-radius: 8px;
+}
+.qryg-search-container .qryg-search-preview-example.current {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.qryg-search-container .qryg-search-preview-example-query {
+  font-family: monospace;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.25);
+  color: rgba(235, 235, 245, 0.9);
+}
+.qryg-search-container .qryg-search-preview-example-text {
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.6);
+}
+.qryg-search-container.theme-light .qryg-search-preview-example.current {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+.qryg-search-container.theme-light .qryg-search-preview-example-query {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+}
+.qryg-search-container.theme-light .qryg-search-preview-example-text {
+  color: rgba(60, 60, 67, 0.7);
+}
 .qryg-search-container.theme-light .qryg-search-preview-kind,
 .qryg-search-container.theme-light .qryg-search-preview-key {
   color: rgba(60, 60, 67, 0.6);

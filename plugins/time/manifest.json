@@ -14,10 +14,10 @@
   "icon": "x-office-calendar-symbolic",
   "completion": false,
   "examples": [
-    {"query": "", "description": "The time now in several formats, and your world clocks"},
-    {"query": "tokyo", "description": "The time in a city or country. \"time tokyo\" works without the prefix"},
-    {"query": "utc+5:30", "description": "The time at a UTC offset"},
-    {"query": "1700000000", "description": "A Unix timestamp as a date"}
+    ["", "The time now in several formats, and your world clocks"],
+    ["tokyo", "The time in a city or country. \"time tokyo\" works without the prefix"],
+    ["utc+5:30", "The time at a UTC offset"],
+    ["1700000000", "A Unix timestamp as a date"]
   ],
   "settings": [
     {

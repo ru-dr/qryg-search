@@ -75,8 +75,8 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
   "completion": true,
   "timeout": 1500,
   "examples": [
-    {"query": "paris", "description": "The weather in Paris"},
-    {"query": "", "description": "The weather where you are"}
+    ["paris", "The weather in Paris"],
+    ["", "The weather where you are"]
   ],
   "settings": []
 }
@@ -91,7 +91,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `command` | no | — | `script` only: an argv array used instead of `main`, such as `["node", "plugin.mjs"]`. |
 | `api` | no | `1` | The plugin API version it was written for. QryG refuses plugins that need a newer API. |
 | `keyword` | yes | — | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
-| `examples` | yes | — | The usage guide: 1 to 10 `{"query", "description"}` entries. See [Usage guide](#usage-guide). |
+| `examples` | yes | — | The usage guide: 1 to 10 `["what to type", "what it does"]` pairs. See [Usage guide](#usage-guide). |
 | `global` | no | `true` | Show results without the prefix. Set this to `false` for anything noisy or slow. |
 | `position` | no | `"bottom"` | `"top"` (above apps), `"after-apps"`, or `"bottom"` (after GNOME's providers). |
 | `priority` | no | `50` | Order within a position. Lower comes first. |
@@ -444,6 +444,7 @@ All fields are optional, and they appear from top to bottom in this order:
 - `code`
 - `body`
 - `details`, as label and value pairs
+- `examples`, as `["what to type", "what it does"]` pairs, each shown as a block. The pair whose first text equals `current` is highlighted. QryG uses this for the [usage guide](#usage-guide).
 
 ## Icons
 
@@ -509,17 +510,17 @@ Pick a short word over a symbol. Single symbols are scarce, and the bundled plug
 
 ## Usage guide
 
-Every plugin needs `examples`: what to type, and what it does. A manifest without them is not loaded and can't be installed.
+Every plugin needs `examples`: pairs of what to type and what it does. A manifest without them is not loaded and can't be installed.
 
 ```json
 "examples": [
-  {"query": "paris", "description": "The weather in Paris"},
-  {"query": "", "description": "The weather where you are"}
+  ["paris", "The weather in Paris"],
+  ["", "The weather where you are"]
 ]
 ```
 
-- `query` is the text after the prefix. QryG adds the user's current prefix when it shows the example, so `paris` appears as `wx paris`, or `w paris` after `qryg keyword weather w`. An empty `query` means the prefix alone.
-- `description` is one short sentence.
+- The first text is what to type after the prefix. Leave the prefix out: QryG adds the user's current one, so `paris` appears as `wx paris`, or `w paris` after `qryg keyword weather w`. An empty text means the prefix alone.
+- The second is one short sentence.
 - Use 1 to 10 examples, most useful first, and make each one work: `qryg plugin test weather paris` runs it.
 
 The guide appears in three places:

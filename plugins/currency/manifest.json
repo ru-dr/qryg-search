@@ -14,9 +14,9 @@
   "icon": "accessories-calculator-symbolic",
   "toggle": "feature-currency",
   "examples": [
-    {"query": "50 usd to inr", "description": "Convert, also without the prefix"},
-    {"query": "100 eur", "description": "Convert to your target currencies"},
-    {"query": "2*15 gbp in jpy", "description": "Amounts can be math"}
+    ["50 usd to inr", "Convert, also without the prefix"],
+    ["100 eur", "Convert to your target currencies"],
+    ["2*15 gbp in jpy", "Amounts can be math"]
   ],
   "settings": [
     {

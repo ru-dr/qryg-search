@@ -13,9 +13,9 @@
   "icon": "web-browser-symbolic",
   "completion": false,
   "examples": [
-    {"query": "gnome shell", "description": "Search the web"},
-    {"query": "yt lofi", "description": "Site shortcuts like yt, gh, w and maps, also without the prefix"},
-    {"query": "github.com", "description": "Open a URL"}
+    ["gnome shell", "Search the web"],
+    ["yt lofi", "Site shortcuts like yt, gh, w and maps, also without the prefix"],
+    ["github.com", "Open a URL"]
   ],
   "settings": [
     {

@@ -16,7 +16,7 @@
   "minQueryLength": 0,
   "completion": false,
   "examples": [
-    {"query": "firefox", "description": "Find your processes. Enter asks one to quit"},
-    {"query": "", "description": "Your processes, by memory use"}
+    ["firefox", "Find your processes. Enter asks one to quit"],
+    ["", "Your processes, by memory use"]
   ]
 }

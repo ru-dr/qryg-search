@@ -30,7 +30,6 @@ link:
 
 zip:
 	@rm -f $(UUID).shell-extension.zip
-	@glib-compile-schemas schemas/
 	@zip -qr $(UUID).shell-extension.zip extension.js prefs.js metadata.json stylesheet.css LICENSE lib prefs plugins schemas
 	@echo "built $(UUID).shell-extension.zip"
 

@@ -11,6 +11,6 @@
   "keyword": "greet",
   "global": false,
   "examples": [
-    {"query": "Ada", "description": "Greets Ada"}
+    ["Ada", "Greets Ada"]
   ]
 }

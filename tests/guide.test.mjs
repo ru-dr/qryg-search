@@ -18,23 +18,20 @@ test('examples are written with the prefix the user has now', () => {
 });
 
 test('a plugin needs a prefix and examples', () => {
-    const examples = [{query: 'paris', description: 'Weather in Paris'}];
+    const examples = [['paris', 'Weather in Paris']];
     assert.deepEqual(guideProblems({keyword: 'wx', examples}), []);
     assert.match(guideProblems({examples}).join(), /keyword is required/);
     assert.match(guideProblems({keyword: 'two words', examples}).join(), /without spaces/);
     assert.match(guideProblems({keyword: 'wx'}).join(), /examples is required/);
     assert.match(guideProblems({keyword: 'wx', examples: []}).join(), /examples is required/);
-    assert.match(guideProblems({keyword: 'wx', examples: [{query: 'x'}]}).join(), /description is required/);
-    assert.match(guideProblems({keyword: 'wx', examples: [{description: 'x'}]}).join(), /query must be a string/);
+    assert.match(guideProblems({keyword: 'wx', examples: [['x']]}).join(), /must be a pair/);
+    assert.match(guideProblems({keyword: 'wx', examples: [[1, 'x']]}).join(), /must be a pair/);
+    assert.match(guideProblems({keyword: 'wx', examples: [{query: 'x', description: 'y'}]}).join(), /must be a pair/);
     assert.match(guideProblems({keyword: 'wx', examples: Array(11).fill(examples[0])}).join(), /at most 10/);
 });
 
 test('guide rows put examples that start with the typed text first', () => {
-    const examples = normalizeExamples([
-        {query: 'uuid', description: 'A UUID'},
-        {query: ' password 32 ', description: 'A password'},
-        {query: 'bad'},
-    ]);
+    const examples = normalizeExamples([['uuid', 'A UUID'], [' password 32 ', 'A password'], ['bad']]);
     assert.deepEqual(examples.map(e => e.query), ['uuid', 'password 32']);
     assert.deepEqual(guideRows('gen', examples, 'pa').map(r => r.title), ['gen password 32', 'gen uuid']);
     assert.deepEqual(guideRows('gen', examples, '').map(r => r.title), ['gen uuid', 'gen password 32']);

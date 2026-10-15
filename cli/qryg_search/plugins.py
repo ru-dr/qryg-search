@@ -223,7 +223,7 @@ class PluginCatalog:
             "id": plugin_id, "name": plugin_id.replace("-", " ").title(), "description": "Describe what it does.",
             "version": "0.1.0", "author": author, "api": 1, "type": kind, "keyword": plugin_id.split("-")[0],
             "position": "bottom", "priority": 50, "category": "general", "icon": "application-x-addon-symbolic",
-            "examples": [{"query": "hello", "description": "Shows what you typed. Replace these with your own examples."}],
+            "examples": [["hello", "Shows what you typed. Replace these with your own examples."]],
             "settings": [],
         }
         if kind == "js":

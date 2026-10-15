@@ -16,8 +16,8 @@
   "completion": false,
   "timeout": 3000,
   "examples": [
-    {"query": "ls -la", "description": "Run a command. Read-only ones show live output"},
-    {"query": "git status", "description": "Enter runs it in your terminal"}
+    ["ls -la", "Run a command. Read-only ones show live output"],
+    ["git status", "Enter runs it in your terminal"]
   ],
   "settings": [
     {

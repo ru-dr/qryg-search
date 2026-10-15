@@ -15,8 +15,8 @@
   "minQueryLength": 2,
   "toggle": "feature-file-search",
   "examples": [
-    {"query": "invoice", "description": "Search file names with plocate"},
-    {"query": "report pdf", "description": "Every word must match"}
+    ["invoice", "Search file names with plocate"],
+    ["report pdf", "Every word must match"]
   ],
   "settings": [
     {

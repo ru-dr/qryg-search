@@ -14,7 +14,7 @@
   "icon": "focus-windows-symbolic",
   "minQueryLength": 2,
   "examples": [
-    {"query": "firefox", "description": "Switch to a window by app name"},
-    {"query": "readme", "description": "Or by window title"}
+    ["firefox", "Switch to a window by app name"],
+    ["readme", "Or by window title"]
   ]
 }

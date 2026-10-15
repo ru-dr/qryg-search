@@ -14,11 +14,11 @@
   "icon": "dialog-password-symbolic",
   "completion": false,
   "examples": [
-    {"query": "uuid", "description": "A random UUID, also without the prefix"},
-    {"query": "password 32", "description": "A random password of 32 characters"},
-    {"query": "sha256 hello", "description": "md5, sha1, sha256, sha384 or sha512 of a text"},
-    {"query": "base64 hello", "description": "Base64 encode, or base64d to decode"},
-    {"query": "url a b&c", "description": "URL encode, or urldecode"},
-    {"query": "random 1 6", "description": "A random number between two numbers"}
+    ["uuid", "A random UUID, also without the prefix"],
+    ["password 32", "A random password of 32 characters"],
+    ["sha256 hello", "md5, sha1, sha256, sha384 or sha512 of a text"],
+    ["base64 hello", "Base64 encode, or base64d to decode"],
+    ["url a b&c", "URL encode, or urldecode"],
+    ["random 1 6", "A random number between two numbers"]
   ]
 }

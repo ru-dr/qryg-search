@@ -14,9 +14,9 @@
   "icon": "accessories-calculator-symbolic",
   "completion": false,
   "examples": [
-    {"query": "10 km to mi", "description": "Convert, also without the prefix"},
-    {"query": "1 GiB to MB", "description": "Data sizes"},
-    {"query": "72 f to c", "description": "Temperature"},
-    {"query": "5 l in cups", "description": "Volume, area, speed, pressure, energy and more"}
+    ["10 km to mi", "Convert, also without the prefix"],
+    ["1 GiB to MB", "Data sizes"],
+    ["72 f to c", "Temperature"],
+    ["5 l in cups", "Volume, area, speed, pressure, energy and more"]
   ]
 }

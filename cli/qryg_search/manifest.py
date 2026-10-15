@@ -40,24 +40,25 @@ def guide_problems(manifest):
         found.append('keyword must be 1 to 12 characters without spaces, such as ">" or "calc"')
     examples = manifest.get("examples")
     if not isinstance(examples, list) or not examples:
-        found.append('examples is required: a list of {"query", "description"} entries that show how to use the plugin')
+        found.append('examples is required: a list of ["what to type", "what it does"] pairs, '
+                     'such as [["paris", "The weather in Paris"]]')
         return found
     if len(examples) > MAX_EXAMPLES:
         found.append(f"examples can have at most {MAX_EXAMPLES} entries")
     for index, example in enumerate(examples):
-        if not isinstance(example, dict):
-            found.append(f'examples[{index}] must be an object with "query" and "description"')
-        elif not isinstance(example.get("query"), str):
-            found.append(f"examples[{index}].query must be a string: what to type after the prefix")
-        elif not isinstance(example.get("description"), str) or not example["description"].strip():
-            found.append(f"examples[{index}].description is required")
+        if not _is_pair(example):
+            found.append(f'examples[{index}] must be a pair of texts: ["what to type after the prefix", "what it does"]')
     return found
 
 
+def _is_pair(example):
+    return (isinstance(example, list) and len(example) == 2 and isinstance(example[0], str)
+            and isinstance(example[1], str) and bool(example[1].strip()))
+
+
 def normalize_examples(examples):
-    kept = [e for e in examples if isinstance(e, dict) and isinstance(e.get("query"), str)
-            and isinstance(e.get("description"), str) and e["description"].strip()] if isinstance(examples, list) else []
-    return [{"query": e["query"].strip(), "description": e["description"].strip()} for e in kept[:MAX_EXAMPLES]]
+    kept = [e for e in examples if _is_pair(e)] if isinstance(examples, list) else []
+    return [{"query": query.strip(), "description": description.strip()} for query, description in kept[:MAX_EXAMPLES]]
 
 
 def is_int(value):

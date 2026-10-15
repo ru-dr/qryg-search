@@ -68,7 +68,7 @@ def make_plugin(base, script, **fields):
     (folder / "plugin.py").write_text(script)
     (folder / "plugin.py").chmod(0o755)
     manifest = {"id": "demo", "name": "Demo", "type": "script", "main": "plugin.py", "keyword": "demo",
-                "examples": [{"query": "x", "description": "Demo"}], **fields}
+                "examples": [["x", "Demo"]], **fields}
     (folder / "manifest.json").write_text(json.dumps(manifest))
     return folder
 
@@ -82,12 +82,14 @@ class ValidateTests(unittest.TestCase):
 
     def test_prefix_and_examples_are_required(self):
         base = {"id": "x", "name": "X", "type": "js", "main": "plugin.js"}
-        examples = [{"query": "paris", "description": "Weather in Paris"}]
+        examples = [["paris", "Weather in Paris"]]
         self.assertEqual(guide_problems({**base, "keyword": "wx", "examples": examples}), [])
         self.assertTrue(any("keyword is required" in p for p in guide_problems({**base, "examples": examples})))
         self.assertTrue(any("examples is required" in p for p in guide_problems({**base, "keyword": "wx"})))
-        self.assertTrue(any("description is required" in p
-                            for p in guide_problems({**base, "keyword": "wx", "examples": [{"query": "x"}]})))
+        self.assertTrue(any("must be a pair" in p
+                            for p in guide_problems({**base, "keyword": "wx", "examples": [["x"]]})))
+        self.assertTrue(any("must be a pair" in p
+                            for p in guide_problems({**base, "keyword": "wx", "examples": [["x", " "]]})))
         _m, problems, _w = validate(base, "/nonexistent")
         self.assertTrue(any("keyword is required" in p for p in problems))
 

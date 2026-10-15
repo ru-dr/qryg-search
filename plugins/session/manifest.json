@@ -15,9 +15,9 @@
   "minQueryLength": 3,
   "completion": false,
   "examples": [
-    {"query": "", "description": "Every session action"},
-    {"query": "lock", "description": "Lock the screen, also without the prefix"},
-    {"query": "suspend", "description": "Suspend, or hibernate when it is available"},
-    {"query": "restart", "description": "Restart, log out or power off, after GNOME asks"}
+    ["", "Every session action"],
+    ["lock", "Lock the screen, also without the prefix"],
+    ["suspend", "Suspend, or hibernate when it is available"],
+    ["restart", "Restart, log out or power off, after GNOME asks"]
   ]
 }

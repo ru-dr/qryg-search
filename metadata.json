@@ -1,7 +1,7 @@
 {
   "uuid": "qryg-search@ru-dr",
   "name": "QryG Search",
-  "description": "QryG Search. A macOS-inspired, keyboard-driven launcher: Top Hit, inline completion, preview pane, filters for apps, files, actions and clipboard, and fast file search through plocate.\n\nOpen with Super+Space. Configure with the qryg-search command line tool or the preferences window.",
+  "description": "A keyboard-driven launcher inspired by macOS Spotlight: Top Hit, inline completion, a preview pane, filters, and plugins for files, a calculator, units, currency, colours, time, emoji, windows, processes, shell commands and the web. Open it with Super+Space, and type a prefix like \"gen \" to see how a plugin works.\n\nClipboard: answers like calculator results are copied to the clipboard when you press Enter or a copy button. The Clipboard plugin reads your history from the Copyous extension, if it is installed, and never sends it anywhere.\n\nNetwork: the Currency plugin downloads daily exchange rates from open.er-api.com. Nothing else is sent unless you open a web search or install a plugin from a link.\n\nPlugins run code on your computer. Only add plugins you trust.",
   "shell-version": [
     "48",
     "49",
@@ -9,6 +9,6 @@
     "51"
   ],
   "url": "https://github.com/ru-dr/qryg-search",
-  "settings-schema": "io.github.ru_dr.QrygSearch",
+  "settings-schema": "org.gnome.shell.extensions.qryg-search",
   "version-name": "1.1.0"
 }
