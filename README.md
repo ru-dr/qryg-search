@@ -15,7 +15,7 @@ Pronounced "query-gee". `Super + Space`, type, `Enter`.
 
 [Install](#install) · [Usage](#usage) · [Plugins](#plugins) · [Styles](#styles) · [Configure](#configure) · [Wiki](https://github.com/ru-dr/qryg-search/wiki) · [Changelog](CHANGELOG.md)
 
-![QryG Search](docs/screenshots/hero.png)
+![QryG Search: typing "te" shows Terminal as the Top Hit, with apps, Settings and a preview](docs/screenshots/hero.webp)
 
 </div>
 
@@ -41,18 +41,25 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 
 ## Features
 
+<p align="center"><img src="docs/screenshots/usage-guide.webp" alt="Typing gen and a space shows the Generators plugin's examples" width="80%"></p>
+<p align="center"><b>Every plugin teaches itself.</b> Type a prefix on its own, like <code>gen </code>, to see what it can do. <code>Tab</code> completes an example and <code>Enter</code> fills it in.</p>
+
 <table>
 <tr>
-<td width="50%" valign="top"><img src="docs/screenshots/calculator.png" alt="Calculator"><br><b>Calculator and dev tools.</b> Just type <code>2^10 / 3</code>, <code>0xff to bin</code> or <code>sqrt 2</code>. No <code>=</code> needed.</td>
-<td width="50%" valign="top"><img src="docs/screenshots/colors.png" alt="Colours"><br><b>Colours.</b> <code>#0a84ff</code>, <code>rgb()</code> or <code>hsl()</code>: every format, a five-step spectrum and WCAG contrast.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/calculator.webp" alt="Calculator showing 2^10 / 3"><br><b>Calculator.</b> <code>2^10 / 3</code>, <code>0xff to bin</code>, <code>sqrt 2</code>. No <code>=</code> needed.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/units.webp" alt="Units converting 10 km to miles"><br><b>Units.</b> <code>10 km to mi</code>, <code>1 GiB to MB</code>, <code>72 f to c</code>, in 11 categories.</td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/screenshots/shell.png" alt="Shell"><br><b>Live shell.</b> <code>&gt; ls -la</code> shows the output as you type. Only safe, read-only commands run in the preview.</td>
-<td width="50%" valign="top"><img src="docs/screenshots/currency.png" alt="Currency"><br><b>Currency and units.</b> <code>50 usd to inr</code>, <code>$20 to eur</code>, <code>10 km to mi</code>, <code>1 GiB to MB</code>.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/currency.webp" alt="Currency converting 50 USD to INR"><br><b>Currency.</b> <code>50 usd to inr</code>, <code>$20 to eur</code>, with daily rates.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/emoji.webp" alt="Emoji search for fire"><br><b>Emoji.</b> <code>:fire</code>, <code>:thumbs up</code>. Every emoji, with a skin tone setting.</td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/screenshots/bookmarks.png" alt="Bookmarks"><br><b>Bookmarks.</b> Files, folders, locations, commands and sites. <code>Ctrl + D</code> on any result adds one.</td>
-<td width="50%" valign="top"><img src="docs/screenshots/plugin-emoji.png" alt="Emoji plugin"><br><b>Your own plugins.</b> This emoji picker is a 60-line Python script.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/time.webp" alt="World clock for Tokyo"><br><b>Time and world clocks.</b> <code>time tokyo</code>, <code>utc+5:30</code>, Unix timestamps.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/shell.webp" alt="Shell showing live ls output"><br><b>Live shell.</b> <code>&gt; ls</code> shows the output as you type. Only read-only commands run in the preview.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/screenshots/colors.webp" alt="Colours for #0a84ff with spectrum and contrast"><br><b>Colours.</b> <code>#0a84ff</code>, <code>rgb()</code>, <code>hsl()</code>: every format, a spectrum and WCAG contrast.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/bookmarks.webp" alt="Bookmarks list with usage examples"><br><b>Bookmarks.</b> Files, folders, sites and commands. <code>Ctrl + D</code> on any result adds one.</td>
 </tr>
 </table>
 
