@@ -4,6 +4,8 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+## 2.1.1 - 2026-10-15
+
 ### Fixed
 
 - When the preview was taller than the results, the last section stretched and its row drifted down, leaving a gap under its header
