@@ -6,9 +6,9 @@ import tempfile
 import time
 from pathlib import Path
 
+from . import remote
 from .paths import EXTENSION_DIR, REPO, USER_PLUGINS
 from .settings import FALSE_WORDS, TRUE_WORDS, quote, string_list
-from .system import run
 from .ui import CliError
 
 API_VERSION = 1
@@ -86,10 +86,6 @@ if [ -z "$query" ]; then
 fi
 python3 -c 'import json, sys; q = sys.argv[1]; print(json.dumps({"results": [{"title": "You typed: " + q, "copy": q, "activate": {"copy": q}}]}))' "$query"
 """
-
-
-def is_remote(source):
-    return bool(re.match(r"^(https?://|git@|ssh://)", source))
 
 
 def is_word_keyword(keyword):
@@ -244,31 +240,29 @@ class PluginCatalog:
         self.reload()
         return target, manifest
 
-    def install(self, source, link=False):
+    def install(self, source, link=False, confirm=None):
+        spec = remote.classify(source)
         with tempfile.TemporaryDirectory() as tmp:
-            if is_remote(source):
-                result = run("git", "clone", "--depth", "1", source, f"{tmp}/plugin")
-                if result is None or result.returncode != 0:
-                    raise CliError((result.stderr.strip() if result else "") or "git clone failed")
-                folder, link = Path(tmp) / "plugin", False
-            else:
-                folder = Path(source).expanduser().resolve()
-            manifest = self.read_manifest(folder)
-            if not manifest:
-                raise CliError(f"{folder} has no valid manifest.json")
-            api = manifest.get("api", API_VERSION)
-            if not isinstance(api, int) or api > API_VERSION:
-                raise CliError(f"{manifest['id']} needs plugin API {api}, this QryG supports {API_VERSION}; update QryG first")
+            folder = remote.fetch(spec, Path(tmp))
+            manifest = remote.check(folder, API_VERSION)
             target = USER_PLUGINS / manifest["id"]
-            remove_path(target)
-            USER_PLUGINS.mkdir(parents=True, exist_ok=True)
-            if link:
-                target.symlink_to(folder)
-            else:
-                shutil.copytree(folder, target, ignore=shutil.ignore_patterns(".git"))
-                (target / SOURCE_FILE).write_text(json.dumps({"source": source if is_remote(source) else str(folder)}) + "\n")
-        self.reload()
-        return manifest, target, link
+            if folder == target.resolve() or target.resolve() in folder.parents:
+                raise CliError(f"{folder} is already installed here; edit it in place, then `qryg-search plugin reload`")
+            link = link and spec["kind"] == "folder"
+            existing = self.read_manifest(target) if target.exists() else None
+            if confirm and not confirm(manifest, spec, target, existing):
+                return None
+            record = {"source": source if remote.is_url(source) else str(Path(source).expanduser().resolve()),
+                      "kind": spec["kind"], "ref": spec["ref"]}
+            remote.replace_dir(folder, target, link, {SOURCE_FILE: json.dumps(record) + "\n"})
+        return manifest, target, link, self.try_reload()
+
+    def try_reload(self):
+        try:
+            self.reload()
+        except CliError:
+            return False
+        return True
 
     @staticmethod
     def source_of(manifest):
@@ -289,7 +283,7 @@ class PluginCatalog:
         if not source:
             raise CliError(f"{manifest['id']} has no recorded source; reinstall it with `qryg-search plugin install`")
         before = manifest.get("version", "")
-        updated, _target, _linked = self.install(source)
+        updated, *_rest = self.install(source)
         return before, updated.get("version", "")
 
     def remove(self, manifest):

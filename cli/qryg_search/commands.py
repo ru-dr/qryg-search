@@ -2,8 +2,9 @@
 import json
 import os
 from pathlib import Path
+import sys
 
-from . import VERSION
+from . import VERSION, remote
 from .bookmarks import BookmarkStore, kind_of
 from .doctor import run_doctor, shortcut_conflicts
 from .install import install, uninstall
@@ -264,6 +265,7 @@ def keyword(ctx, args):
              ("--lang", {"choices": ["python", "bash"], "default": "python"}),
              ("--link", {"action": "store_true", "help": "install: symlink a local folder"}),
              ("--activate", {"type": int, "metavar": "N", "help": "test: also show what Enter on result N does"}),
+             (("-y", "--yes"), {"action": "store_true", "help": "install: do not ask for confirmation"}),
          ])
 def plugin(ctx, args):
     action = args.action or "list"
@@ -334,9 +336,29 @@ def _plugin_new(ctx, args):
 
 
 def _plugin_install(ctx, args):
-    warn("plugins run with your user permissions; only install plugins you trust")
-    manifest, target, linked = ctx.plugins.install(_require_id(args), link=args.link)
+    source = _require_id(args)
+    if not args.yes and not sys.stdin.isatty():
+        raise CliError("no terminal to confirm in; pass --yes to install without asking")
+    installed = ctx.plugins.install(source, link=args.link, confirm=lambda *card: _confirm_install(args.yes, *card))
+    if not installed:
+        print(dim("  not installed"))
+        return
+    manifest, target, linked, reloaded = installed
     ok(f"installed {manifest['id']} to {target}" + (" (linked)" if linked else ""))
+    if not reloaded:
+        warn("could not reach QryG's settings; run `qryg-search plugin reload` once it is installed")
+
+
+def _confirm_install(yes, manifest, spec, target, existing):
+    for label, value in remote.card(manifest, spec["source"], target, existing):
+        print(f"  {label.lower():<9} {bold(value) if label == 'Name' else value}")
+    warn("only install plugins you trust: a plugin can read your files and act as you")
+    if yes:
+        return True
+    try:
+        return input("Install? [y/N] ").strip().lower() in ("y", "yes")
+    except EOFError:
+        return False
 
 
 def _plugin_update(ctx, args):
