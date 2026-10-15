@@ -4,9 +4,18 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+### Added
+
+- `Ctrl + Tab` / `Ctrl + Shift + Tab` cycle the filters, a color picker and a Reset appearance button in Preferences, and screen reader names for the preview and inline completion
+
 ### Changed
 
+- `Esc` clears the filter, then the text, then closes. Rows, headers and the preview scale with the font size, the preview fades in, and an empty filter explains how to search everything
 - New name: QryG Search. The extension UUID is now `qryg-search@ru-dr`, the settings schema is `io.github.ru_dr.QrygSearch`, the CLI is `qryg-search`, CSS classes use the `.qryg-search-` prefix, and plugin environment variables use `QRYG_SEARCH_`. User files moved to `qryg-search` folders under `~/.config`, `~/.local/share` and `~/.cache`. Old settings and files are not migrated.
+
+### Fixed
+
+- Row action buttons in the light theme, the preview title colour, and the window height on short screens
 
 ## 1.0.0 - 2026-10-08
 

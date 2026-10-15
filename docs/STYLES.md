@@ -26,6 +26,9 @@ You can also pick a style in **Preferences → Appearance → Style**, which has
 - Your rules override the built-in look, including the accent, radius and opacity settings. You don't need `!important`.
 - Start a selector with `.theme-light` for rules that apply only in light mode.
 - Use `.qryg-search-container` to target the outer window itself.
+- The font size setting sets the bar text. Rows, section headers, the status text and the preview scale with it (rows never go below 13px, small text never below 10px), so at the default 20px they keep their built-in sizes. A `font-size` in your style still wins.
+- On short screens QryG lowers the window's `max-height` (560px by default) so it fits below the top offset. That limit is set on the window itself and overrides a `max-height` in your style.
+- Row highlights fade over 80ms. GNOME Shell skips CSS transitions when animations are turned off, so set `transition-duration: 0ms` on `.list-search-result` only if you want no fade with animations on.
 - GNOME Shell CSS is a subset of web CSS. Colours, `border`, `border-radius`, `padding`, `margin`, `spacing`, `font-*`, `box-shadow` and `background-gradient-*` work. Variables, `@media`, `display` and grid don't.
 
 ## Selectors
@@ -53,6 +56,7 @@ You can also pick a style in **Preferences → Appearance → Style**, which has
 | `.qryg-search-preview-separator` | The line in the preview |
 | `.qryg-search-preview-thumb` | Image thumbnails |
 | `.qryg-search-spectrum`, `.qryg-search-spectrum-swatch`, `.qryg-search-spectrum-base`, `.qryg-search-spectrum-hex` | The colour spectrum |
+| `.search-statustext` | The "No results" message |
 
 ## Example
 
