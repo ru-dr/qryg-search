@@ -5,6 +5,21 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 
+const watched = new WeakMap();
+
+// Calls `callback` when a setting changes, until disconnectSettings() runs as the window closes.
+export function watchSetting(settings, key, callback) {
+    const ids = watched.get(settings) ?? [];
+    ids.push(settings.connect(`changed::${key}`, callback));
+    watched.set(settings, ids);
+}
+
+export function disconnectSettings(settings) {
+    for (const id of watched.get(settings) ?? [])
+        settings.disconnect(id);
+    watched.delete(settings);
+}
+
 export function escape(text) {
     return GLib.markup_escape_text(String(text ?? ''), -1);
 }
@@ -63,7 +78,7 @@ function colorEntryRow(settings, key, title) {
         if (valid && row.text.trim().toLowerCase() !== settings.get_string(key).toLowerCase())
             settings.set_string(key, row.text.trim().toLowerCase());
     });
-    settings.connect(`changed::${key}`, () => {
+    watchSetting(settings, key, () => {
         if (row.text.trim().toLowerCase() !== settings.get_string(key).toLowerCase())
             row.text = settings.get_string(key);
     });
@@ -89,7 +104,7 @@ export function colorRow(settings, key, title, subtitle = '') {
         if (hex !== settings.get_string(key).toLowerCase())
             settings.set_string(key, hex);
     });
-    settings.connect(`changed::${key}`, load);
+    watchSetting(settings, key, load);
     row.add_suffix(button);
     row.activatable_widget = button;
     return row;

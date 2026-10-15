@@ -6,6 +6,7 @@ import {buildFeaturesPage} from './prefs/featuresPage.js';
 import {buildPluginsPage} from './prefs/pluginsPage.js';
 import {buildBookmarksPage} from './prefs/bookmarksPage.js';
 import {buildAboutPage} from './prefs/aboutPage.js';
+import {disconnectSettings} from './prefs/widgets.js';
 
 const PAGES = [
     buildKeyboardPage,
@@ -22,5 +23,9 @@ export default class QrygSearchPreferences extends ExtensionPreferences {
         for (const build of PAGES)
             window.add(build(context));
         window.set_search_enabled(true);
+        window.connect('close-request', () => {
+            disconnectSettings(context.settings);
+            return false;
+        });
     }
 }

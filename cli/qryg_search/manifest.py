@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
+# What a manifest must hold. lib/plugins/rules.js and lib/plugins/guide.js do the same for the extension: keep them in step.
 import json
 import os
 import re
+
+from .ui import CliError
 
 API_VERSION = 1
 MAX_EXAMPLES = 10
@@ -29,6 +32,16 @@ def example_text(keyword, query):
     if not keyword:
         return query
     return f"{keyword} {query}".rstrip() if is_word_keyword(keyword) else f"{keyword}{query}"
+
+
+def _number(text):
+    value = float(text)
+    return int(value) if value.is_integer() else value
+
+
+def loads(text):
+    """Parses JSON like JavaScript does, so 1.0 is the whole number 1."""
+    return json.loads(text, parse_float=_number)
 
 
 # Mirrors guideProblems() in lib/plugins/guide.js: every plugin needs a prefix and a usage guide.
@@ -74,15 +87,81 @@ def clamp(value, low, high, default):
     return min(high, max(low, value)) if is_int(value) else default
 
 
-def _check_setting(index, setting, warnings):
+def safe_relative(path, what="path"):
+    if not isinstance(path, str) or not path or path.startswith("/") or "\\" in path:
+        raise CliError(f"{what} {json.dumps(path)} must be a relative path inside the plugin")
+    parts = [part for part in path.split("/") if part not in ("", ".")]
+    if not parts or ".." in parts:
+        raise CliError(f"{what} {json.dumps(path)} must be a relative path inside the plugin")
+    return "/".join(parts)
+
+
+def manifest_files(manifest):
+    files = manifest.get("files", [])
+    if not isinstance(files, list):
+        raise CliError('"files" must be a list of relative paths')
+    wanted = [manifest["main"]] if isinstance(manifest.get("main"), str) else []
+    result = []
+    for path in wanted + files:
+        clean = safe_relative(path, "file")
+        if clean != "manifest.json" and clean not in result:
+            result.append(clean)
+    return result
+
+
+# Mirrors manifestProblems() in lib/plugins/rules.js. has_file(path, executable) says whether the plugin has that file.
+def manifest_problems(manifest, has_file, api_version=API_VERSION):
+    if not isinstance(manifest, dict):
+        return ["manifest.json must be a JSON object"]
+    found = []
+    if not (isinstance(manifest.get("id"), str) and PLUGIN_ID.fullmatch(manifest["id"])):
+        found.append("id must be lowercase letters, digits and dashes")
+    if not isinstance(manifest.get("name"), str) or not manifest["name"].strip():
+        found.append("name is required")
+    kind, main = manifest.get("type"), manifest.get("main")
+    if kind not in ("js", "script"):
+        found.append('type must be "js" or "script"')
+    elif kind == "js" and not (isinstance(main, str) and main.endswith(".js")):
+        found.append('js plugins need "main": "plugin.js"')
+    elif kind == "js" and not has_file(main, False):
+        found.append(f"{main} not found")
+    elif kind == "script" and not has_command(manifest):
+        if not isinstance(main, str):
+            found.append('script plugins need "main" (an executable) or "command" (an argv array)')
+        elif not has_file(main, True):
+            found.append(f"{main} is missing or not executable (chmod +x)")
+    api = manifest.get("api")
+    api = api_version if api is None else api
+    if not is_int(api) or api < 1:
+        found.append("api must be a whole number, such as 1")
+    elif api > api_version:
+        found.append(f"needs plugin API {api}, this QryG supports {api_version}; update QryG first")
+    found.extend(guide_problems(manifest))
+    try:
+        manifest_files(manifest)
+    except CliError as error:
+        found.append(str(error))
+    return found
+
+
+def has_file_in(folder):
+    def has_file(path, executable):
+        file = os.path.join(folder, path)
+        return os.path.isfile(file) and (not executable or os.access(file, os.X_OK))
+    return has_file
+
+
+def _check_setting(index, setting, warnings, bundled):
     if not isinstance(setting, dict) or not isinstance(setting.get("key"), str) or setting.get("type") not in SETTING_TYPES:
         warnings.append(f"settings[{index}] is ignored: it needs a \"key\" and a \"type\" of {', '.join(SETTING_TYPES)}")
         return False
     key, kind, default = setting["key"], setting["type"], setting.get("default")
     for extra in sorted(set(setting) - SETTING_KEYS):
         warnings.append(f"setting {key}: unknown field \"{extra}\"")
-    if setting.get("gsetting"):
+    if setting.get("gsetting") and bundled:
         return True
+    if setting.get("gsetting"):
+        warnings.append(f"setting {key}: gsetting only works in bundled plugins; it is kept with the plugin's settings")
     if kind == "int":
         low, high = setting.get("min"), setting.get("max")
         if is_int(low) and is_int(high) and low > high:
@@ -104,28 +183,14 @@ def _check_setting(index, setting, warnings):
     return True
 
 
-# Mirrors validate() in lib/plugins/manifest.js, and also warns about values it silently replaces.
+# Mirrors scan() in lib/plugins/manifest.js: manifestProblems() and normalizeManifest() in lib/plugins/rules.js.
+# It also warns about values it silently replaces.
 def validate(raw, folder, bundled=False):
-    problems, warnings = [], []
+    problems = manifest_problems(raw, has_file_in(folder), API_VERSION)
+    warnings = []
     m = dict(raw)
     kind = m.get("type")
-    if not isinstance(m.get("id"), str) or not PLUGIN_ID.fullmatch(m["id"]):
-        problems.append("id must be lowercase letters, digits and dashes")
-    if not isinstance(m.get("name"), str) or not m["name"].strip():
-        problems.append("name is required")
-    if kind not in ("js", "script"):
-        problems.append('type must be "js" or "script"')
-    if kind == "js" and (not isinstance(m.get("main"), str) or not m["main"].endswith(".js")):
-        problems.append('js plugins need "main": "plugin.js"')
-    if kind == "script" and not has_command(m) and not isinstance(m.get("main"), str):
-        problems.append('script plugins need "main" (an executable) or "command" (an argv array)')
     api = m.get("api")
-    if api is not None and not (is_int(api) and api >= 1):
-        problems.append("api must be a whole number, such as 1")
-    elif is_int(api) and api > API_VERSION:
-        problems.append(f"needs plugin API {api}, this QryG supports {API_VERSION}; update QryG first")
-    keyword = m.get("keyword")
-    problems.extend(guide_problems(m))
 
     for key in sorted(set(m) - KNOWN_KEYS):
         warnings.append(f"unknown field \"{key}\" is ignored")
@@ -154,10 +219,14 @@ def validate(raw, folder, bundled=False):
         warnings.append("startupTimeout only applies to persistent script plugins")
     if "settings" in m and not isinstance(m["settings"], list):
         warnings.append("settings must be a list; ignoring it")
+    if "toggle" in m and not bundled:
+        warnings.append("toggle only works in bundled plugins; it is ignored")
+        del m["toggle"]
     settings = m.get("settings") if isinstance(m.get("settings"), list) else []
-    kept = [s for i, s in enumerate(settings) if _check_setting(i, s, warnings)]
+    kept = [s if bundled else {k: v for k, v in s.items() if k != "gsetting"}
+            for i, s in enumerate(settings) if _check_setting(i, s, warnings, bundled)]
 
-    m["keyword"] = keyword or None
+    m["keyword"] = m.get("keyword") or None
     m["examples"] = normalize_examples(m.get("examples"))
     m["position"] = m.get("position") if m.get("position") in POSITIONS else "bottom"
     m["priority"] = m["priority"] if is_int(m.get("priority")) else 50
@@ -175,20 +244,12 @@ def validate(raw, folder, bundled=False):
     m["settings"] = kept
     m["dir"] = str(folder)
     m["bundled"] = bundled
-
-    main = m.get("main")
-    if kind == "js" and isinstance(main, str) and main and not os.path.exists(os.path.join(folder, main)):
-        problems.append(f"{main} not found")
-    if kind == "script" and not has_command(m) and isinstance(main, str) and main:
-        exe = os.path.join(folder, main)
-        if not (os.path.isfile(exe) and os.access(exe, os.X_OK)):
-            problems.append(f"{main} is missing or not executable (chmod +x)")
     return m, problems, warnings
 
 
 def load(folder, bundled=False):
     try:
-        raw = json.loads((folder / "manifest.json").read_text())
+        raw = loads((folder / "manifest.json").read_text())
     except OSError as error:
         return None, [f"manifest.json: {error.strerror or error}"], []
     except ValueError as error:

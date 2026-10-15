@@ -146,9 +146,9 @@ class PluginCatalog:
             self._settings.set_variant(manifest["toggle"], "true")
 
     def keyword(self, manifest):
-        custom = self._settings.get_json("keywords")
-        if manifest["id"] in custom:
-            return custom[manifest["id"]] or None
+        custom = self._settings.get_json("keywords").get(manifest["id"])
+        if custom == "" or (isinstance(custom, str) and KEYWORD.fullmatch(custom)):
+            return custom or None
         return manifest.get("keyword") or None
 
     def set_keyword(self, manifest, value):

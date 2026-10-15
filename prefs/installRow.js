@@ -67,11 +67,9 @@ export function installGroup({window, settings}, onInstalled) {
         let fetched = null;
         try {
             fetched = await fetchPlugin(source, current);
-            busy(false);
-            cancellable = null;
-            if (!await confirm(window, fetched))
+            if (!await confirm(window, fetched) || current.is_cancelled())
                 return;
-            await install(fetched);
+            await install(fetched, current);
             settings.set_int('plugins-reload', settings.get_int('plugins-reload') + 1);
             row.text = '';
             onInstalled();

@@ -11,7 +11,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "cli"))
 
 from qryg_search import bookmarks, main as cli_main, runner  # noqa: E402
-from qryg_search.manifest import example_text, guide_problems, load, validate  # noqa: E402
+from qryg_search.manifest import example_text, guide_problems, load, loads, validate  # noqa: E402
 from qryg_search.plugins import PluginCatalog  # noqa: E402
 from qryg_search.ui import CliError  # noqa: E402
 
@@ -129,6 +129,29 @@ class ValidateTests(unittest.TestCase):
         self.assertEqual(manifest["timeout"], 100)
         self.assertEqual([s["key"] for s in manifest["settings"]], ["n"])
 
+    def test_only_bundled_plugins_use_qryg_settings(self):
+        raw = {"id": "x", "name": "X", "type": "js", "main": "plugin.js", "toggle": "feature-x",
+               "settings": [{"key": "k", "type": "string", "gsetting": "terminal"}]}
+        manifest, _problems, warnings = validate(raw, "/nonexistent")
+        self.assertNotIn("toggle", manifest)
+        self.assertNotIn("gsetting", manifest["settings"][0])
+        self.assertTrue(any("toggle only works in bundled plugins" in w for w in warnings))
+        self.assertTrue(any("gsetting only works in bundled plugins" in w for w in warnings))
+        manifest, _problems, warnings = validate(raw, "/nonexistent", bundled=True)
+        self.assertEqual(manifest["toggle"], "feature-x")
+        self.assertEqual(manifest["settings"][0]["gsetting"], "terminal")
+
+    def test_load_checks_paths_and_numbers_like_the_extension(self):
+        raw = {"id": "x", "name": "X", "type": "js", "main": "plugin.js", "keyword": "x", "examples": [["a", "A"]],
+               "files": ["../secret"], "api": None}
+        _m, problems, _w = validate(raw, "/nonexistent")
+        self.assertIn("plugin.js not found", problems)
+        self.assertTrue(any("must be a relative path" in p for p in problems))
+        self.assertFalse(any("api" in p for p in problems))
+        parsed = loads('{"api": 1.0, "priority": 2.5, "timeout": 1e3}')
+        self.assertEqual(parsed, {"api": 1, "priority": 2.5, "timeout": 1000})
+        self.assertIsInstance(parsed["api"], int)
+
     def test_unreadable_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp, "manifest.json").write_text("{nope")
@@ -151,6 +174,13 @@ class SettingTests(unittest.TestCase):
         with self.assertRaisesRegex(CliError, "at least 0"):
             self.catalog.set_setting(self.manifest, {"key": "n", "type": "int", "min": 0}, "-1")
         self.assertEqual(self.settings.store["plugin-settings"], {"weather": {"days": 7}})
+
+    def test_keyword_falls_back_like_the_extension(self):
+        manifest = {"id": "weather", "keyword": "wx"}
+        self.assertEqual(self.catalog.keyword(manifest), "wx")
+        for stored, expect in (("w", "w"), ("", None), ("two words", "wx"), (5, "wx")):
+            self.settings.store["keywords"] = {"weather": stored}
+            self.assertEqual(self.catalog.keyword(manifest), expect, stored)
 
     def test_bool_words(self):
         alerts = {"key": "alerts", "type": "bool"}
