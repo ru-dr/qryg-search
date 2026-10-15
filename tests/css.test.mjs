@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {buildCss, scopeUserCss, USER_ROOT} from '../lib/core/css.js';
+import {buildCss, maxHeightStyle, scaledSize, scopeUserCss, textSizes, USER_ROOT} from '../lib/core/css.js';
 
 const config = (overrides = {}) => ({
     accentColor: '#ff375f', opacity: 90, cornerRadius: 10, fontSize: 20, ...overrides,
@@ -38,4 +38,27 @@ test('empty or broken user css produces nothing', () => {
 
 test('falls back to the default accent for invalid colours', () => {
     assert.match(buildCss(config({accentColor: 'nope'})), /rgb\(10, 132, 255\)/);
+});
+
+test('default font size keeps the built-in text sizes', () => {
+    const sizes = Object.fromEntries(textSizes(20).map(({selector, size}) => [selector.trim(), size]));
+    assert.equal(sizes['.list-search-result'], 14);
+    assert.equal(sizes['.qryg-search-section-header'], 12);
+    assert.equal(sizes['.qryg-search-preview-value'], 11);
+    assert.equal(sizes['.qryg-search-spectrum-hex'], 10);
+});
+
+test('text sizes follow the font size with minimums', () => {
+    assert.equal(scaledSize(14, 28, 13), 20);
+    assert.equal(scaledSize(14, 12, 13), 13);
+    assert.equal(scaledSize(11, 12, 10), 10);
+    assert.ok(textSizes(12).every(({size}) => size >= 10));
+    assert.match(buildCss(config({fontSize: 30})), /\.list-search-result \{ font-size: 21px !important; \}/);
+});
+
+test('caps the window height on short monitors only', () => {
+    assert.equal(maxHeightStyle({monitorHeight: 1080, topOffset: 22}), null);
+    assert.equal(maxHeightStyle({monitorHeight: 768, topOffset: 22}), 'max-height: 551px;');
+    assert.equal(maxHeightStyle({monitorHeight: 1200, topOffset: 22, scale: 2}), 'max-height: 420px;');
+    assert.equal(maxHeightStyle({monitorHeight: 400, topOffset: 60}), 'max-height: 200px;');
 });

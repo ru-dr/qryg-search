@@ -192,7 +192,7 @@
       <range min="12" max="32"/>
       <default>20</default>
       <summary>Bar font size</summary>
-      <description>Font size of the search bar text in pixels.</description>
+      <description>Font size of the search bar text in pixels. Result rows, headers and the preview scale with it.</description>
     </key>
     <key name="exclude-paths" type="as">
       <default>['/go/pkg/mod/', '/sdk/', '/.cargo/', '/.rustup/']</default>
