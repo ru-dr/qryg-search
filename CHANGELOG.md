@@ -4,6 +4,8 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+## 2.1.0 - 2026-10-15
+
 ### Changed
 
 - Exact bookmark and file name matches rank higher, and open windows rank just below their app
