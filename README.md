@@ -272,6 +272,7 @@ qryg accent '#ff375f'
 qryg shortcut super+space
 qryg set width 760
 qryg set max-rows 7
+qryg set result-priority 'files, apps'   # what comes first and gives the Top Hit
 qryg set search-engine 'https://duckduckgo.com/?q=%s'
 qryg set currencies 'USD, EUR, INR'
 qryg set terminal kitty

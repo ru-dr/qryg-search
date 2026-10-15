@@ -367,7 +367,9 @@ The window closes afterwards.
 
 ## Ranking
 
-Sections are ordered by a score. A section without scored results uses the base score of its position:
+Sections are grouped by kind first, in the order people choose under **Preferences → Features → Result priority** (or `qryg set result-priority`). The default is apps, actions, files, other, clipboard. Your plugin's kind is its `category`: `apps`, `actions`, `files` or `clipboard`, and `general` counts as other. GNOME's apps and system actions are apps, its Settings and Calculator are actions, and other GNOME search providers are other. The first section with a match gives the Top Hit.
+
+Within one kind, sections are ordered by a score. A section without scored results uses the base score of its position:
 
 | Section | Base score |
 |---|---|
@@ -377,9 +379,9 @@ Sections are ordered by a score. A section without scored results uses the base 
 | GNOME search providers | 50 |
 | Plugins with `"position": "bottom"` | 30 |
 
-If your results set `score`, your section uses the highest one instead, and moves when it beats another section. The first row of the first section is the Top Hit.
+If your results set `score`, your section uses the highest one instead, and moves when it beats another section of the same kind. A score never moves a section past a kind that comes earlier in the result priority.
 
-For example, a file search plugin at the bottom can return `"score": 95` for an exact file name match, and it moves above the apps. Without any scores, the order is the same as the table. Sections with the same score keep their `priority` order.
+For example, a bookmarks plugin at the bottom can return `"score": 95` for an exact name match, and it moves above other `general` sections such as web search. Without any scores, the order is the same as the table. Sections with the same score keep their `priority` order.
 
 Give an honest score:
 
