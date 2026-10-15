@@ -1,18 +1,18 @@
-.yags-bar,
-.yags-results,
-.yags-preview,
+.qryg-search-bar,
+.qryg-search-results,
+.qryg-search-preview,
 .list-search-result,
-.yags-filter-button,
-.yags-row-action {
+.qryg-search-filter-button,
+.qryg-search-row-action {
   border-radius: 0;
 }
 
-.yags-bar,
-.yags-results {
+.qryg-search-bar,
+.qryg-search-results {
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.theme-light .yags-bar,
-.theme-light .yags-results {
+.theme-light .qryg-search-bar,
+.theme-light .qryg-search-results {
   border: 2px solid rgba(0, 0, 0, 0.2);
 }

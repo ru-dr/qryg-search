@@ -3,7 +3,7 @@
   "name": "Units",
   "description": "Convert length, mass, volume, area, time, speed, data, pressure, energy, angle and temperature.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

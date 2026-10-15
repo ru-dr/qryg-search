@@ -3,7 +3,7 @@
   "name": "Emoji",
   "description": "Search emoji by name and copy them. An example script plugin written in Python.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "type": "script",
   "persistent": true,
   "main": "plugin.py",

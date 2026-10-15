@@ -35,5 +35,5 @@ jobs:
         run: |
           prerelease=""
           case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" yags@ru-dr.shell-extension.zip \
-            --title "yags $GITHUB_REF_NAME" --notes-file notes.md --verify-tag $prerelease
+          gh release create "$GITHUB_REF_NAME" qryg-search@ru-dr.shell-extension.zip \
+            --title "QryG Search $GITHUB_REF_NAME" --notes-file notes.md --verify-tag $prerelease

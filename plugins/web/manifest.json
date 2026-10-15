@@ -3,7 +3,7 @@
   "name": "Web",
   "description": "Search the web, site shortcuts like \"yt lofi\", and opening URLs.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

@@ -1,8 +1,8 @@
 <div align="center">
 
-# yags
+# QryG Search
 
-**Yet Another GNOME Search**
+Pronounced "query-gee".
 
 A macOS-inspired, keyboard-first launcher for GNOME Shell, with a plugin system and custom styles.
 
@@ -12,9 +12,9 @@ A macOS-inspired, keyboard-first launcher for GNOME Shell, with a plugin system 
 ![Wayland](https://img.shields.io/badge/Wayland-ready-success)
 ![Plugin API v1](https://img.shields.io/badge/plugin_API-v1-8a2be2)
 ![License GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)
-[![CI](https://github.com/ru-dr/yags/actions/workflows/ci.yml/badge.svg)](https://github.com/ru-dr/yags/actions/workflows/ci.yml)
+[![CI](https://github.com/ru-dr/qryg-search/actions/workflows/ci.yml/badge.svg)](https://github.com/ru-dr/qryg-search/actions/workflows/ci.yml)
 
-![yags](docs/screenshots/hero.png)
+![QryG Search](docs/screenshots/hero.png)
 
 </div>
 
@@ -22,7 +22,7 @@ A macOS-inspired, keyboard-first launcher for GNOME Shell, with a plugin system 
 
 ## Why
 
-GNOME's Overview search is good, but it is tied to the Overview. yags replaces it with a floating search bar that opens over any window, even fullscreen video, and adds the things you would otherwise need five different tools for: a calculator, unit and currency conversion, colour tools, a live shell, bookmarks, clipboard history and fast file search.
+GNOME's Overview search is good, but it is tied to the Overview. QryG Search replaces it with a floating search bar that opens over any window, even fullscreen video, and adds the things you would otherwise need five different tools for: a calculator, unit and currency conversion, colour tools, a live shell, bookmarks, clipboard history and fast file search.
 
 Every one of those features is a **plugin**. You can turn each one off, give it your own prefix, or write your own in JavaScript, Python, Bash or anything else that can read and write JSON.
 
@@ -49,8 +49,8 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 - Fast file search with `plocate`, plus recent files and a live view of your home folders
 - Opens over fullscreen apps, and `Super + Space` never leaks a key press into the app behind it
 - Uses your system font and follows the light or dark theme, with your own accent colour
-- A full CLI (`yags`) and a preferences window, and every change applies live
-- Custom styles: drop a CSS file in `~/.config/yags/styles`, and it applies live as you edit it ([guide](docs/STYLES.md))
+- A full CLI (`qryg-search`) and a preferences window, and every change applies live
+- Custom styles: drop a CSS file in `~/.config/qryg-search/styles`, and it applies live as you edit it ([guide](docs/STYLES.md))
 
 
 ## Install
@@ -58,19 +58,19 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 You need GNOME Shell 48 or newer. `plocate` (file search) and the Copyous extension (clipboard) are optional.
 
 ```bash
-git clone https://github.com/ru-dr/yags.git
-cd yags
-./bin/yags install       # installs the extension and links the yags CLI into ~/.local/bin
+git clone https://github.com/ru-dr/qryg-search.git
+cd qryg-search
+./bin/qryg-search install       # installs the extension and links the qryg-search CLI into ~/.local/bin
 ```
 
 Log out and back in, because Wayland only loads new extensions at login. Then run:
 
 ```bash
-yags enable
-yags doctor              # checks dependencies, shortcut and prefix conflicts
+qryg-search enable
+qryg-search doctor              # checks dependencies, shortcut and prefix conflicts
 ```
 
-For development, `./bin/yags install --link` symlinks the checkout instead.
+For development, `./bin/qryg-search install --link` symlinks the checkout instead.
 
 ## Using it
 
@@ -91,10 +91,10 @@ A **prefix** limits the search to one plugin. Symbol prefixes work right away (`
 Prefixes are yours to change:
 
 ```bash
-yags keyword                 # list them
-yags keyword files /         # files now uses "/"
-yags keyword windows none    # no prefix
-yags keyword files default   # back to "f"
+qryg-search keyword                 # list them
+qryg-search keyword files /         # files now uses "/"
+qryg-search keyword windows none    # no prefix
+qryg-search keyword files default   # back to "f"
 ```
 
 You can also change them in **Preferences → Plugins**.
@@ -117,27 +117,27 @@ You can also change them in **Preferences → Plugins**.
 
 ## What is a plugin, and what is GNOME
 
-yags does not use GNOME's search UI, but it does reuse GNOME's **search providers**: apps, Settings panels, and anything an app registers (Files, Calendar, Contacts and others). Everything else is a yags plugin.
+QryG does not use GNOME's search UI, but it does reuse GNOME's **search providers**: apps, Settings panels, and anything an app registers (Files, Calendar, Contacts and others). Everything else is a QryG plugin.
 
-| Comes from GNOME | yags plugins (bundled) |
+| Comes from GNOME | QryG plugins (bundled) |
 |---|---|
 | Apps, Settings, and app search providers | calc, units, currency, colors, generators, time, shell, web, bookmarks, files, windows, clipboard |
-| `yags source` lists and toggles them | `yags plugin` lists and toggles them |
+| `qryg-search source` lists and toggles them | `qryg-search plugin` lists and toggles them |
 
 ```bash
-yags source off contacts calendar
-yags plugin disable currency
+qryg-search source off contacts calendar
+qryg-search plugin disable currency
 ```
 
 ## Plugins
 
-A plugin is a folder with a `manifest.json` and either a JavaScript module or any executable. Drop it in `~/.local/share/yags/plugins/`. It can add results, previews, row buttons and its own settings, which appear in the preferences window automatically.
+A plugin is a folder with a `manifest.json` and either a JavaScript module or any executable. Drop it in `~/.local/share/qryg-search/plugins/`. It can add results, previews, row buttons and its own settings, which appear in the preferences window automatically.
 
 ```bash
-yags plugin new weather                          # JavaScript
-yags plugin new todo --type script --lang python # or Python, or --lang bash
-yags plugin install https://github.com/you/yags-plugin-x
-yags plugin reload
+qryg-search plugin new weather                          # JavaScript
+qryg-search plugin new todo --type script --lang python # or Python, or --lang bash
+qryg-search plugin install https://github.com/you/qryg-search-plugin-x
+qryg-search plugin reload
 ```
 
 A complete JavaScript plugin:
@@ -171,15 +171,15 @@ if sys.argv[1] == "query":
 
 ## Styles
 
-The look is plain CSS. A style is one file in `~/.config/yags/styles/`. Your rules override the built-in look, and every save applies straight away.
+The look is plain CSS. A style is one file in `~/.config/qryg-search/styles/`. Your rules override the built-in look, and every save applies straight away.
 
 ```bash
-yags style new mine        # start from an example
-yags style use mine
+qryg-search style new mine        # start from an example
+qryg-search style use mine
 ```
 
 ```css
-.yags-bar, .yags-results { border-radius: 0; border: 2px solid #ff375f; }
+.qryg-search-bar, .qryg-search-results { border-radius: 0; border: 2px solid #ff375f; }
 .list-search-result:selected { background-color: rgba(255, 255, 255, 0.12); }
 ```
 
@@ -190,32 +190,32 @@ yags style use mine
 Everything applies live, with no logout.
 
 ```bash
-yags                          # status
-yags prefs                    # graphical preferences
-yags list                     # every setting
-yags style use mine           # a custom CSS style, see docs/STYLES.md
-yags theme dark               # default | dark | light
-yags accent '#ff375f'
-yags shortcut super+space
-yags set corner-radius 18
-yags set width 760
-yags set max-rows 7
-yags set search-engine 'https://duckduckgo.com/?q=%s'
-yags set currencies 'USD, EUR, INR'
-yags set terminal kitty
-yags feature off bounce preview
-yags bookmark add docs ~/Documents
-yags reset --all
+qryg-search                          # status
+qryg-search prefs                    # graphical preferences
+qryg-search list                     # every setting
+qryg-search style use mine           # a custom CSS style, see docs/STYLES.md
+qryg-search theme dark               # default | dark | light
+qryg-search accent '#ff375f'
+qryg-search shortcut super+space
+qryg-search set corner-radius 18
+qryg-search set width 760
+qryg-search set max-rows 7
+qryg-search set search-engine 'https://duckduckgo.com/?q=%s'
+qryg-search set currencies 'USD, EUR, INR'
+qryg-search set terminal kitty
+qryg-search feature off bounce preview
+qryg-search bookmark add docs ~/Documents
+qryg-search reset --all
 ```
 
-The full reference is in the [wiki](https://github.com/ru-dr/yags/wiki).
+The full reference is in the [wiki](https://github.com/ru-dr/qryg-search/wiki).
 
 ## Troubleshooting
 
 - **The bar is invisible, or typing does nothing.** Another extension is hiding the Overview search, such as Just Perfection's *Search* option. Turn that option back on.
-- **`Super + Space` does nothing.** Run `yags doctor`, which lists anything else bound to the same keys.
+- **`Super + Space` does nothing.** Run `qryg-search doctor`, which lists anything else bound to the same keys.
 - **A new file doesn't show up.** plocate reindexes once a day. Run `sudo updatedb` to refresh it now.
-- **A plugin doesn't load.** It is listed under *Not loaded* in Preferences → Plugins, with the reason. `journalctl --user -f -o cat | grep yags` shows its log.
+- **A plugin doesn't load.** It is listed under *Not loaded* in Preferences → Plugins, with the reason. `journalctl --user -f -o cat | grep qryg-search` shows its log.
 - **Code changes don't apply.** On Wayland, GNOME Shell only reloads extension code at login. Settings and plugin reloads are live.
 
 ## Development
@@ -238,12 +238,12 @@ The code is laid out like this:
 | `lib/plugins` | The plugin host |
 | `plugins/` | Bundled plugins |
 | `prefs/` | Preferences pages |
-| `cli/` | The `yags` tool |
+| `cli/` | The `qryg-search` tool |
 
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and release process.
 
 ## Credits
 
-yags started as a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin. Built by the community, for the community.
+QryG started as a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin. Built by the community, for the community.
 
 Licensed under [GPL-3.0-or-later](LICENSE).

@@ -1,8 +1,8 @@
 {
-  "name": "yags",
+  "name": "qryg-search",
   "version": "1.0.0",
   "private": true,
-  "description": "Yet Another GNOME Search: a plugin-based launcher for GNOME Shell",
+  "description": "QryG Search: a plugin-based launcher for GNOME Shell",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {

@@ -9,7 +9,7 @@ from .ui import CliError
 
 def install(link=False):
     if not (REPO / "metadata.json").exists():
-        raise CliError(f"run install from a yags checkout, {REPO} has no metadata.json")
+        raise CliError(f"run install from a QryG checkout, {REPO} has no metadata.json")
     EXTENSION_DIR.parent.mkdir(parents=True, exist_ok=True)
     remove_path(EXTENSION_DIR)
     if link:
@@ -26,15 +26,15 @@ def install(link=False):
     if result is None or result.returncode != 0:
         raise CliError("glib-compile-schemas failed")
     BIN_DIR.mkdir(parents=True, exist_ok=True)
-    cli = BIN_DIR / "yags"
+    cli = BIN_DIR / "qryg-search"
     remove_path(cli)
-    cli.symlink_to(REPO / "bin" / "yags")
+    cli.symlink_to(REPO / "bin" / "qryg-search")
     return cli
 
 
 def uninstall():
-    run("gnome-extensions", "disable", "yags@ru-dr")
+    run("gnome-extensions", "disable", "qryg-search@ru-dr")
     remove_path(EXTENSION_DIR)
-    cli = BIN_DIR / "yags"
-    if cli.is_symlink() and cli.resolve() == (REPO / "bin" / "yags").resolve():
+    cli = BIN_DIR / "qryg-search"
+    if cli.is_symlink() and cli.resolve() == (REPO / "bin" / "qryg-search").resolve():
         cli.unlink()

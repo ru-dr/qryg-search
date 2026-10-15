@@ -5,12 +5,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "cli"))
 
-from yags.bookmarks import kind_of  # noqa: E402
-from yags.commands import _accelerator  # noqa: E402
-from yags.plugins import is_word_keyword  # noqa: E402
-from yags.settings import parse_variant, quote, string_list  # noqa: E402
-from yags.styles import StyleStore  # noqa: E402
-from yags.ui import CliError  # noqa: E402
+from qryg_search.bookmarks import kind_of  # noqa: E402
+from qryg_search.commands import _accelerator  # noqa: E402
+from qryg_search.plugins import is_word_keyword  # noqa: E402
+from qryg_search.settings import parse_variant, quote, string_list  # noqa: E402
+from qryg_search.styles import StyleStore  # noqa: E402
+from qryg_search.ui import CliError  # noqa: E402
 
 
 class VariantTests(unittest.TestCase):

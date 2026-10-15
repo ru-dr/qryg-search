@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://github.com/ru-dr/yags/wiki
+    url: https://github.com/ru-dr/qryg-search/wiki
     about: Guides for every feature, the CLI, plugins and styles

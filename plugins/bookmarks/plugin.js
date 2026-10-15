@@ -50,7 +50,7 @@ export default class BookmarksPlugin {
             icon: 'list-add-symbolic',
             run: () => {
                 const entry = Bookmarks.add(target, name);
-                this.api.notify('yags', `Bookmarked "${entry.name}"`);
+                this.api.notify('QryG', `Bookmarked "${entry.name}"`);
             },
             preview: {kind: `New ${kind} bookmark`, details: [['Name', name], ['Target', target]]},
         }];

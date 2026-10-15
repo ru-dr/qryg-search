@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 METADATA = ROOT / "metadata.json"
 PACKAGE = ROOT / "package.json"
-CLI_VERSION = ROOT / "cli" / "yags" / "__init__.py"
+CLI_VERSION = ROOT / "cli" / "qryg_search" / "__init__.py"
 CHANGELOG = ROOT / "CHANGELOG.md"
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")
 UNRELEASED = "## Unreleased"
@@ -23,7 +23,7 @@ def versions():
     return {
         "metadata.json": json.loads(METADATA.read_text())["version-name"],
         "package.json": json.loads(PACKAGE.read_text())["version"],
-        "cli/yags/__init__.py": re.search(r'VERSION = "([^"]+)"', CLI_VERSION.read_text()).group(1),
+        "cli/qryg_search/__init__.py": re.search(r'VERSION = "([^"]+)"', CLI_VERSION.read_text()).group(1),
     }
 
 

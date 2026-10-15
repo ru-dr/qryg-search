@@ -3,7 +3,7 @@
   "name": "Generators",
   "description": "uuid, md5/sha hashes, base64, URL encoding, passwords and random numbers.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

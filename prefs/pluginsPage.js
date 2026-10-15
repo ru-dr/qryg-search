@@ -127,7 +127,7 @@ export function buildPluginsPage({settings, path}) {
             {label: 'Open', onClicked: openUserFolder},
             {label: 'Reload', onClicked: () => settings.set_int('plugins-reload', settings.get_int('plugins-reload') + 1)},
         ]),
-    ], 'Turn plugins on or off, change their prefix and settings. Create one with `yags plugin new`.')];
+    ], 'Turn plugins on or off, change their prefix and settings. Create one with `qryg-search plugin new`.')];
     for (const [title, list] of [['Bundled', plugins.filter(p => p.bundled)], ['Installed', plugins.filter(p => !p.bundled)]]) {
         if (list.length > 0)
             groups.push(group(title, list.sort(byName).map(m => pluginRow(settings, m))));

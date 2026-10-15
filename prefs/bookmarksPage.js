@@ -60,7 +60,7 @@ export function buildBookmarksPage({window}) {
         rows = [];
         const list = Bookmarks.load();
         if (list.length === 0) {
-            const empty = new Adw.ActionRow({title: 'No bookmarks yet', subtitle: 'In yags, select a file, site or command and press Ctrl+D, or type *+ followed by a target'});
+            const empty = new Adw.ActionRow({title: 'No bookmarks yet', subtitle: 'In QryG, select a file, site or command and press Ctrl+D, or type *+ followed by a target'});
             listGroup.add(empty);
             rows.push(empty);
             return;

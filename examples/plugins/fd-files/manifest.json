@@ -3,7 +3,7 @@
   "name": "fd Files",
   "description": "File search with fd instead of plocate. Change the id to \"files\" to replace the bundled file search.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "script",
   "main": "plugin.py",

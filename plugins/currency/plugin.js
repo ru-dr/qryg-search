@@ -84,9 +84,6 @@ export default class CurrencyPlugin {
     constructor(api) {
         this.api = api;
         this._rates = new Rates(GLib.build_filenamev([api.cacheDir, 'rates.json']));
-        const legacy = GLib.build_filenamev([GLib.get_user_cache_dir(), 'yags', 'rates.json']);
-        if (!this._rates.updated && GLib.file_test(legacy, GLib.FileTest.EXISTS))
-            this._rates = new Rates(legacy);
     }
 
     async query({query, cancellable}) {

@@ -3,7 +3,7 @@
   "name": "Shell",
   "description": "Run shell commands. Read-only commands show live output as you type.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",
