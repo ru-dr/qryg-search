@@ -92,7 +92,6 @@ class PluginCatalog:
 
     @staticmethod
     def bundled_dirs():
-        """Folders whose plugins count as bundled: the installed extension's and this checkout's."""
         return {folder.resolve() for folder in (EXTENSION_DIR / "plugins", REPO / "plugins") if folder.is_dir()}
 
     @staticmethod

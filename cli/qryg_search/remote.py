@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Fetches a plugin from a folder, git repository, repository subfolder, archive or manifest URL.
 # lib/plugins/remote.js and lib/plugins/installer.js do the same for the preferences window: keep them in step.
 # The manifest rules live in manifest.py, like lib/plugins/rules.js.
 import os

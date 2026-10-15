@@ -7,7 +7,6 @@ import Gtk from 'gi://Gtk';
 
 const watched = new WeakMap();
 
-// Calls `callback` when a setting changes, until disconnectSettings() runs as the window closes.
 export function watchSetting(settings, key, callback) {
     const ids = watched.get(settings) ?? [];
     ids.push(settings.connect(`changed::${key}`, callback));

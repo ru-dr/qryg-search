@@ -83,7 +83,6 @@ class Settings:
         self._gsettings("set", SCHEMA, key, variant)
 
     def set_in_list(self, key, item, present):
-        """Adds item to, or removes it from, a string list setting."""
         values = set(self.get(key))
         (values.add if present else values.discard)(item)
         self.set_variant(key, string_list(sorted(values)))

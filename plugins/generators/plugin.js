@@ -25,7 +25,7 @@ function randomBytes(n) {
     }
 }
 
-// Bytes from the kernel's random source. Bytes that would favour the first characters are thrown away.
+// Bytes that would favour the first characters are thrown away.
 function randomPassword(len) {
     const limit = 256 - 256 % ALPHABET.length;
     let out = '';
@@ -73,7 +73,6 @@ function password([, length]) {
     return [row(randomPassword(len), `Random password, ${len} characters`, KEY_ICON)];
 }
 
-// Tried in order. The first pattern that matches the query makes the rows.
 const GENERATORS = [
     {pattern: /^(uuid|guid)$/i, handler: uuid},
     {pattern: /^(md5|sha1|sha256|sha384|sha512)\s+(.+)$/is, handler: hash},

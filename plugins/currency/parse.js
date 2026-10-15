@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Reading currency queries. No GNOME imports, so it can be tested with node.
+// No GNOME imports, so it can be tested with node.
 
 export const SYMBOLS = {'$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR'};
 const ISO_CODES = new Set(Intl.supportedValuesOf('currency'));
@@ -14,7 +14,6 @@ const PATTERNS = [
     [new RegExp(`^\\s*(.+?)\\s*(${CODE})\\s*$`), ['amount', 'from']],
 ];
 
-// "usd", "USD" or "$" → "USD", or null when it is not a currency code.
 export function currencyCode(name) {
     const code = SYMBOLS[name] ?? name.toUpperCase();
     return ISO_CODES.has(code) ? code : null;
@@ -34,7 +33,6 @@ export function parseQuery(query) {
     return null;
 }
 
-// The decimals usually shown for a currency: 0 for JPY, 3 for KWD, 2 for most.
 export function currencyDigits(code) {
     try {
         return new Intl.NumberFormat('en-US', {style: 'currency', currency: code}).resolvedOptions().maximumFractionDigits;

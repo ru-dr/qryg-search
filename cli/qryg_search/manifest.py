@@ -27,7 +27,6 @@ def is_word_keyword(keyword):
 
 
 def example_text(keyword, query):
-    """What to type for an example, with the prefix the user has now."""
     query = query.strip()
     if not keyword:
         return query
@@ -44,7 +43,7 @@ def loads(text):
     return json.loads(text, parse_float=_number)
 
 
-# Mirrors guideProblems() in lib/plugins/guide.js: every plugin needs a prefix and a usage guide.
+# Mirrors guideProblems() in lib/plugins/guide.js.
 def guide_problems(manifest):
     found = []
     keyword = manifest.get("keyword")
@@ -109,7 +108,7 @@ def manifest_files(manifest):
     return result
 
 
-# Mirrors manifestProblems() in lib/plugins/rules.js. has_file(path, executable) says whether the plugin has that file.
+# Mirrors manifestProblems() in lib/plugins/rules.js.
 def manifest_problems(manifest, has_file, api_version=API_VERSION):
     if not isinstance(manifest, dict):
         return ["manifest.json must be a JSON object"]
