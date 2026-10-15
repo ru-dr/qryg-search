@@ -4,7 +4,7 @@ import re
 
 from . import VERSION
 from .paths import REPO
-from .system import run
+from .system import git as run_git
 from .ui import CliError
 
 RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
@@ -12,8 +12,14 @@ INSTALL_HINT = "curl -fsSL https://raw.githubusercontent.com/ru-dr/qryg-search/m
 
 
 def version_key(text):
+    """(major, minor, patch) of a release like v1.2.3, or None for anything else, such as a pre-release."""
     match = RELEASE_TAG.match(text if text.startswith("v") else f"v{text}")
     return tuple(int(part) for part in match.groups()) if match else None
+
+
+def base_version_key(text):
+    """(major, minor, patch) with any pre-release part dropped, so 2.1.0-rc1 compares as 2.1.0."""
+    return version_key(text.split("-", 1)[0])
 
 
 def latest_release(tags):
@@ -23,12 +29,7 @@ def latest_release(tags):
 
 
 def git(*args):
-    result = run("git", "-C", str(REPO), *args)
-    if result is None:
-        raise CliError("git is not installed")
-    if result.returncode != 0:
-        raise CliError(f"git {args[0]} failed: {(result.stderr or result.stdout).strip()}")
-    return result.stdout.strip()
+    return run_git(*args, cwd=REPO)
 
 
 def check():
@@ -38,13 +39,14 @@ def check():
     git("fetch", "--quiet", "--tags", "--force", "origin")
     branch = git("rev-parse", "--abbrev-ref", "HEAD")
     if branch != "HEAD":
-        if run("git", "-C", str(REPO), "rev-parse", "--verify", "--quiet", f"origin/{branch}").returncode != 0:
+        if f"origin/{branch}" not in git("branch", "--remotes", "--format=%(refname:short)").split():
             raise CliError(f"{branch} is not on GitHub, so there is nothing to update it from")
         behind = int(git("rev-list", "--count", f"HEAD..origin/{branch}") or 0)
         return {"kind": "branch", "branch": branch, "behind": behind, "current": VERSION,
                 "available": behind > 0, "target": f"origin/{branch}"}
     latest = latest_release(git("tag", "--list", "v*").split())
-    newer = bool(latest) and version_key(latest) > version_key(VERSION)
+    current = base_version_key(VERSION)
+    newer = bool(latest) and (current is None or version_key(latest) > current)
     return {"kind": "release", "current": VERSION, "latest": latest, "available": newer, "target": latest}
 
 

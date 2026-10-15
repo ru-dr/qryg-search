@@ -32,8 +32,18 @@ main() {
         ref="$(git -C "$src" tag --list 'v*' --sort=-version:refname | grep -v -- - | head -n 1 || true)"
         ref="${ref:-main}"
     fi
+    if [ -n "$(git -C "$src" status --porcelain --untracked-files=no)" ]; then
+        echo "qryg-search: $src has local changes; commit or stash them first" >&2
+        exit 1
+    fi
     if git -C "$src" show-ref --verify --quiet "refs/remotes/origin/$ref"; then
-        git -C "$src" checkout --quiet -B "$ref" "origin/$ref"
+        # Like `qryg update`: move a branch forward, never throw away commits made on it.
+        if git -C "$src" show-ref --verify --quiet "refs/heads/$ref"; then
+            git -C "$src" checkout --quiet "$ref"
+            git -C "$src" merge --quiet --ff-only "origin/$ref"
+        else
+            git -C "$src" checkout --quiet -b "$ref" --track "origin/$ref"
+        fi
     else
         git -C "$src" checkout --quiet --detach "$ref"
     fi

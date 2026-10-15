@@ -9,12 +9,11 @@ import threading
 import time
 from pathlib import Path
 
-from .paths import CONFIG_HOME
+from .paths import APP_CACHE, APP_CONFIG
 from .ui import CliError
 
 MAX_OUTPUT = 512 * 1024
 MAX_RESULTS = 50
-CACHE_HOME = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
 HARNESS = Path(__file__).resolve().parent / "harness.js"
 HARNESS_MARKER = "QRYG_SEARCH_HARNESS "
 EFFECT_KEYS = ("copy", "open", "exec", "terminal", "notify")
@@ -50,8 +49,8 @@ def has_effects(value):
 
 
 def plugin_env(manifest):
-    cache = CACHE_HOME / "qryg-search" / "plugins" / manifest["id"]
-    config = CONFIG_HOME / "qryg-search" / "plugins" / manifest["id"]
+    cache = APP_CACHE / "plugins" / manifest["id"]
+    config = APP_CONFIG / "plugins" / manifest["id"]
     cache.mkdir(parents=True, exist_ok=True)
     config.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ)
@@ -243,7 +242,10 @@ def run_js(manifest, query, settings, activate=None, raw=None):
     stderr = proc.stderr.decode(errors="replace")
     if reply is None:
         raise CliError(f"the test harness failed: {stderr.strip()[-400:] or 'no output'}")
-    data = json.loads(reply)
+    try:
+        data = json.loads(reply)
+    except ValueError as error:
+        raise CliError(f"the test harness sent something that is not JSON: {error}") from error
     if data.get("error"):
         raise CliError(data["error"])
     run = Run()

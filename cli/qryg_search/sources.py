@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import re
 
-from .paths import SEARCH_PROVIDER_DIRS
+from .paths import SEARCH_PROVIDER_DIRS, provider_id
 from .settings import parse_variant, string_list
 from .system import run
+from .ui import CliError
 
 GNOME_SEARCH = "org.gnome.desktop.search-providers"
 
@@ -25,7 +26,9 @@ def gnome_disabled():
 
 
 def set_gnome_disabled(values):
-    run("gsettings", "set", GNOME_SEARCH, "disabled", string_list(sorted(values)))
+    result = run("gsettings", "set", GNOME_SEARCH, "disabled", string_list(sorted(values)))
+    if result is None or result.returncode != 0:
+        raise CliError(f"could not change GNOME's search settings: {result.stderr.strip() if result else 'gsettings is missing'}")
 
 
 class SourceCatalog:
@@ -36,7 +39,7 @@ class SourceCatalog:
     def all(self):
         sources = {}
         for plugin_id, manifest in self._plugins.all().items():
-            sources[plugin_id] = {"id": f"qryg-search-{plugin_id}", "label": manifest.get("name", plugin_id), "manifest": manifest}
+            sources[plugin_id] = {"id": provider_id(plugin_id), "label": manifest.get("name", plugin_id), "manifest": manifest}
         sources["apps"] = {"id": "applications", "label": "Applications and system actions", "manifest": None}
         for alias, desktop in gnome_sources().items():
             key = alias if alias not in sources else desktop.removesuffix(".desktop").lower()
@@ -54,9 +57,7 @@ class SourceCatalog:
         if source["manifest"]:
             self._plugins.set_enabled(source["manifest"], enabled)
             return False
-        disabled = set(self._settings.get("disabled-providers"))
-        (disabled.discard if enabled else disabled.add)(source["id"])
-        self._settings.set_variant("disabled-providers", string_list(sorted(disabled)))
+        self._settings.set_in_list("disabled-providers", source["id"], not enabled)
         gnome = gnome_disabled()
         if enabled and source["id"] in gnome:
             set_gnome_disabled(gnome - {source["id"]})

@@ -1,17 +1,19 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "cli"))
 
-from qryg_search.bookmarks import kind_of  # noqa: E402
+from qryg_search.bookmarks import kind_of, normalize  # noqa: E402
 from qryg_search.commands import _accelerator  # noqa: E402
-from qryg_search.plugins import is_word_keyword  # noqa: E402
+from qryg_search.manifest import is_word_keyword  # noqa: E402
 from qryg_search.settings import parse_variant, quote, string_list  # noqa: E402
 from qryg_search.styles import StyleStore  # noqa: E402
 from qryg_search.ui import CliError  # noqa: E402
-from qryg_search.update import latest_release, version_key  # noqa: E402
+from qryg_search.update import base_version_key, latest_release, version_key  # noqa: E402
 
 
 class VariantTests(unittest.TestCase):
@@ -28,10 +30,26 @@ class VariantTests(unittest.TestCase):
         self.assertEqual(string_list(["a", "b"]), "['a', 'b']")
 
 
+class BookmarkPathTests(unittest.TestCase):
+    def test_home_is_only_replaced_at_the_start(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp, "me")
+            (home / "docs").mkdir(parents=True)
+            sibling = Path(tmp, "me2")
+            sibling.mkdir()
+            with mock.patch.object(Path, "home", return_value=home):
+                self.assertEqual(normalize(str(home / "docs")), "~/docs")
+                self.assertEqual(normalize(str(sibling)), str(sibling.resolve()))
+
+
 class UpdateTests(unittest.TestCase):
     def test_latest_release_skips_pre_releases(self):
         self.assertEqual(latest_release(["v1.0.0", "v1.10.0", "v1.9.2", "v2.0.0-rc1", "notes"]), "v1.10.0")
         self.assertIsNone(latest_release(["v2.0.0-rc1"]))
+
+    def test_pre_release_compares_by_its_base(self):
+        self.assertEqual(base_version_key("2.1.0-rc1"), (2, 1, 0))
+        self.assertIsNone(version_key("2.1.0-rc1"))
 
     def test_version_key(self):
         self.assertEqual(version_key("1.2.3"), (1, 2, 3))

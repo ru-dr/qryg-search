@@ -16,16 +16,15 @@ import zipfile
 from pathlib import Path
 
 from . import VERSION
-from .manifest import guide_problems
+from .manifest import PLUGIN_ID, guide_problems
+from .system import git as run_git
 from .ui import CliError
 
-KINDS = ("folder", "git", "subdir", "archive", "manifest")
 ARCHIVE_SUFFIXES = (".zip", ".tar.gz", ".tgz", ".tar.xz")
 MAX_BYTES = 50 * 1024 * 1024
 MAX_MANIFEST_BYTES = 1024 * 1024
 TIMEOUT = 30
 USER_AGENT = f"qryg-search/{VERSION} (+https://github.com/ru-dr/qryg-search)"
-PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 URL = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://")
 SCP = re.compile(r"^[\w.-]+@[\w.-]+:")
 GIT_SCHEMES = ("http", "https", "ssh", "git", "file")
@@ -128,7 +127,8 @@ def problems(manifest, has_file, api_version):
             found.append('script plugins need "main" (an executable) or "command" (an argv array)')
         elif not has_file(main, True):
             found.append(f"{main} is missing or not executable (chmod +x)")
-    api = manifest.get("api", api_version)
+    api = manifest.get("api")
+    api = api_version if api is None else api
     if not isinstance(api, int) or isinstance(api, bool) or api < 1:
         found.append("api must be a whole number, such as 1")
     elif api > api_version:
@@ -196,13 +196,7 @@ def download(url, dest, limit):
 
 
 def git(*args, cwd=None):
-    try:
-        result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True,
-                                env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
-    except FileNotFoundError:
-        raise CliError("git is not installed; install it to fetch plugins from git")
-    if result.returncode != 0:
-        raise CliError(result.stderr.strip().splitlines()[-1] if result.stderr.strip() else f"git {args[0]} failed")
+    return run_git(*args, cwd=cwd, missing="git is not installed; install it to fetch plugins from git")
 
 
 def fetch_git(spec, dest):
@@ -353,6 +347,14 @@ def fetch(spec, tmp):
 
 
 # Builds the new folder beside the old one and swaps it in, so a failed install keeps the old plugin.
+def check_links(folder):
+    """Refuses links that lead outside the plugin folder, so copying never pulls in other files."""
+    root = folder.resolve()
+    for path in folder.rglob("*"):
+        if path.is_symlink() and not path.resolve().is_relative_to(root):
+            raise CliError(f"{path.relative_to(folder)} links outside the plugin folder")
+
+
 def replace_dir(folder, target, link=False, extra=None):
     target.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(dir=target.parent.parent, prefix=".install-"))
@@ -361,7 +363,8 @@ def replace_dir(folder, target, link=False, extra=None):
         if link:
             new.symlink_to(folder)
         else:
-            shutil.copytree(folder, new, ignore=shutil.ignore_patterns(*IGNORED))
+            check_links(folder)
+            shutil.copytree(folder, new, symlinks=True, ignore=shutil.ignore_patterns(*IGNORED))
             for name, text in (extra or {}).items():
                 (new / name).write_text(text)
         if target.is_symlink() or target.exists():

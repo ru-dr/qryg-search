@@ -5,8 +5,9 @@ import re
 
 API_VERSION = 1
 MAX_EXAMPLES = 10
-PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
-KEYWORD = re.compile(r"^\S{1,12}$")
+MAX_KEYWORD = 12
+PLUGIN_ID = re.compile(r"[a-z0-9][a-z0-9-]{0,40}")
+KEYWORD = re.compile(rf"\S{{1,{MAX_KEYWORD}}}")
 POSITIONS = ["top", "after-apps", "bottom"]
 CATEGORIES = ["general", "apps", "files", "actions", "clipboard"]
 SETTING_TYPES = ["bool", "int", "string", "strings", "choice"]
@@ -36,7 +37,7 @@ def guide_problems(manifest):
     keyword = manifest.get("keyword")
     if keyword is None or keyword == "":
         found.append('keyword is required: the prefix that limits the search to this plugin, such as "wx"')
-    elif not (isinstance(keyword, str) and KEYWORD.match(keyword)):
+    elif not (isinstance(keyword, str) and KEYWORD.fullmatch(keyword)):
         found.append('keyword must be 1 to 12 characters without spaces, such as ">" or "calc"')
     examples = manifest.get("examples")
     if not isinstance(examples, list) or not examples:
@@ -108,7 +109,7 @@ def validate(raw, folder, bundled=False):
     problems, warnings = [], []
     m = dict(raw)
     kind = m.get("type")
-    if not isinstance(m.get("id"), str) or not PLUGIN_ID.match(m["id"]):
+    if not isinstance(m.get("id"), str) or not PLUGIN_ID.fullmatch(m["id"]):
         problems.append("id must be lowercase letters, digits and dashes")
     if not isinstance(m.get("name"), str) or not m["name"].strip():
         problems.append("name is required")
@@ -122,7 +123,7 @@ def validate(raw, folder, bundled=False):
     if api is not None and not (is_int(api) and api >= 1):
         problems.append("api must be a whole number, such as 1")
     elif is_int(api) and api > API_VERSION:
-        problems.append(f"needs plugin API {api}, this QryG supports {API_VERSION}; update QryG")
+        problems.append(f"needs plugin API {api}, this QryG supports {API_VERSION}; update QryG first")
     keyword = m.get("keyword")
     problems.extend(guide_problems(m))
 

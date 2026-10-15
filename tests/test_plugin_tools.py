@@ -193,7 +193,8 @@ class RunnerTests(unittest.TestCase):
         self.tmp = tempfile.mkdtemp()
         self.env = mock.patch.dict(os.environ, {"XDG_CACHE_HOME": f"{self.tmp}/cache"})
         self.env.start()
-        self.dirs = mock.patch.multiple(runner, CACHE_HOME=Path(self.tmp, "cache"), CONFIG_HOME=Path(self.tmp, "config"))
+        self.dirs = mock.patch.multiple(runner, APP_CACHE=Path(self.tmp, "cache", "qryg-search"),
+                                        APP_CONFIG=Path(self.tmp, "config", "qryg-search"))
         self.dirs.start()
 
     def tearDown(self):
