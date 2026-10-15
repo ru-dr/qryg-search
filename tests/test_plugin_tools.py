@@ -247,6 +247,11 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(run.activation, {"via": "the copy fallback", "effects": {"copy": "fire"}})
         self.assertTrue(Path(self.tmp, "config", "qryg-search", "plugins", "demo").is_dir())
 
+    def test_crash_reports_exit_status(self):
+        manifest = self.manifest("#!/bin/sh\necho boom here >&2\nexit 3\n")
+        with self.assertRaisesRegex(CliError, "exit 3: boom here"):
+            runner.run_script(manifest, "x", {})
+
     def test_timeout(self):
         manifest = self.manifest(ONE_SHOT, timeout=300)
         with self.assertRaisesRegex(CliError, "timed out after 300 ms"):

@@ -416,7 +416,8 @@ def _plugin_folder(ctx, target):
     if folder.name == "manifest.json":
         folder = folder.parent
     if folder.is_dir() and (os.sep in target or target.startswith(".") or (folder / "manifest.json").exists()):
-        return folder.resolve(), False
+        folder = folder.resolve()
+        return folder, folder.parent in PluginCatalog.bundled_dirs()
     manifest = ctx.plugins.get(target)
     return manifest["_dir"], manifest["_bundled"]
 

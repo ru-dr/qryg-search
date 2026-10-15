@@ -94,6 +94,13 @@ class Run:
         self.stderr = ""
 
 
+def exit_error(returncode, stderr):
+    """Mirrors exitError() in lib/plugins/script.js."""
+    reason = f"exit {returncode}" if returncode > 0 else f"killed by signal {-returncode}"
+    lines = stderr.strip().splitlines()
+    return f"{reason}: {lines[-1]}" if lines else reason
+
+
 class OneShot:
     def __init__(self, manifest):
         self._manifest = manifest
@@ -108,7 +115,10 @@ class OneShot:
                                   cwd=self._manifest["dir"], env=plugin_env(self._manifest), timeout=timeout / 1000)
         except subprocess.TimeoutExpired as error:
             raise CliError(f"timed out after {timeout} ms") from error
-        self.stderr += proc.stderr.decode(errors="replace")
+        stderr = proc.stderr.decode(errors="replace")
+        self.stderr += stderr
+        if proc.returncode != 0:
+            raise CliError(exit_error(proc.returncode, stderr))
         if len(proc.stdout) > MAX_OUTPUT:
             raise CliError(f"output larger than {MAX_OUTPUT // 1024} KB")
         return decode(proc.stdout.decode(errors="replace"))

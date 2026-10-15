@@ -54,7 +54,7 @@ export function buildBookmarksPage({window}) {
             return;
         }
         for (const b of list) {
-            const kind = b.type ?? Bookmarks.kindOf(b.target);
+            const kind = b.type ?? Bookmarks.bookmarkKind(b.target);
             const row = new Adw.ActionRow({title: escape(b.name), subtitle: escape(b.target), subtitle_lines: 1});
             row.add_prefix(new Gtk.Image({icon_name: ICONS[kind] ?? 'user-bookmarks-symbolic'}));
             const del = new Gtk.Button({icon_name: 'user-trash-symbolic', tooltip_text: 'Remove', valign: Gtk.Align.CENTER, css_classes: ['flat']});

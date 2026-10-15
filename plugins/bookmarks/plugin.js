@@ -43,7 +43,7 @@ export default class BookmarksPlugin {
         }
         const target = Bookmarks.normalizeTarget(parsed.target);
         const name = parsed.name || Bookmarks.defaultName(target);
-        const kind = Bookmarks.kindOf(target);
+        const kind = Bookmarks.bookmarkKind(target);
         const exists = Bookmarks.find(target);
         return [{
             id: 'add',
@@ -68,7 +68,7 @@ export default class BookmarksPlugin {
             const score = matchWords([b.name, b.target, ...(b.tags ?? [])], query);
             if (score === null)
                 continue;
-            const kind = b.type ?? Bookmarks.kindOf(b.target);
+            const kind = b.type ?? Bookmarks.bookmarkKind(b.target);
             const label = `${capitalize(kind)} bookmark`;
             const target = b.target;
             let activate;
@@ -86,7 +86,7 @@ export default class BookmarksPlugin {
                 kind: label,
                 score: query ? score : undefined,
                 copy: target.replace(/^>\s*/, ''),
-                path: kind === 'file' || kind === 'folder' ? Bookmarks.expandPath(target) : undefined,
+                path: kind === 'file' || kind === 'folder' ? this.api.expandPath(target) : undefined,
                 bookmarkName: b.name,
                 activate,
                 preview: {kind: `${kind} bookmark`, details: [['Target', target], ...(b.tags?.length ? [['Tags', b.tags.join(', ')]] : [])]},
