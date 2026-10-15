@@ -7,9 +7,16 @@
   "api": 1,
   "type": "js",
   "main": "plugin.js",
+  "keyword": "col",
   "position": "top",
   "priority": 5,
   "category": "actions",
   "icon": "color-select-symbolic",
-  "completion": false
+  "completion": false,
+  "examples": [
+    {"query": "#0a84ff", "description": "Every format, a spectrum and contrast. #0a84ff works without the prefix"},
+    {"query": "0a84ff", "description": "Hex without the #"},
+    {"query": "rgb(10 132 255)", "description": "rgb() and rgba()"},
+    {"query": "hsl(210 100% 52%)", "description": "hsl() and hsla()"}
+  ]
 }

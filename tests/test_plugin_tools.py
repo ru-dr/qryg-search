@@ -11,7 +11,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "cli"))
 
 from qryg_search import bookmarks, main as cli_main, runner  # noqa: E402
-from qryg_search.manifest import load, validate  # noqa: E402
+from qryg_search.manifest import example_text, guide_problems, load, validate  # noqa: E402
 from qryg_search.plugins import PluginCatalog  # noqa: E402
 from qryg_search.ui import CliError  # noqa: E402
 
@@ -67,7 +67,8 @@ def make_plugin(base, script, **fields):
     folder.mkdir()
     (folder / "plugin.py").write_text(script)
     (folder / "plugin.py").chmod(0o755)
-    manifest = {"id": "demo", "name": "Demo", "type": "script", "main": "plugin.py", **fields}
+    manifest = {"id": "demo", "name": "Demo", "type": "script", "main": "plugin.py", "keyword": "demo",
+                "examples": [{"query": "x", "description": "Demo"}], **fields}
     (folder / "manifest.json").write_text(json.dumps(manifest))
     return folder
 
@@ -78,6 +79,23 @@ class ValidateTests(unittest.TestCase):
             _manifest, problems, warnings = load(folder, bundled=True)
             self.assertEqual(problems, [], folder.name)
             self.assertEqual(warnings, [], folder.name)
+
+    def test_prefix_and_examples_are_required(self):
+        base = {"id": "x", "name": "X", "type": "js", "main": "plugin.js"}
+        examples = [{"query": "paris", "description": "Weather in Paris"}]
+        self.assertEqual(guide_problems({**base, "keyword": "wx", "examples": examples}), [])
+        self.assertTrue(any("keyword is required" in p for p in guide_problems({**base, "examples": examples})))
+        self.assertTrue(any("examples is required" in p for p in guide_problems({**base, "keyword": "wx"})))
+        self.assertTrue(any("description is required" in p
+                            for p in guide_problems({**base, "keyword": "wx", "examples": [{"query": "x"}]})))
+        _m, problems, _w = validate(base, "/nonexistent")
+        self.assertTrue(any("keyword is required" in p for p in problems))
+
+    def test_example_text(self):
+        self.assertEqual(example_text("tz", "tokyo"), "tz tokyo")
+        self.assertEqual(example_text("tz", ""), "tz")
+        self.assertEqual(example_text(":", "fire"), ":fire")
+        self.assertEqual(example_text(None, "tokyo"), "tokyo")
 
     def test_problems_match_the_extension(self):
         _m, problems, _w = validate({"id": "Bad Id", "type": "python"}, "/nonexistent")

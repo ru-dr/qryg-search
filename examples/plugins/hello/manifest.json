@@ -11,6 +11,10 @@
   "position": "bottom",
   "priority": 90,
   "icon": "face-smile-symbolic",
+  "examples": [
+    {"query": "world", "description": "Says hello and copies it"},
+    {"query": "", "description": "Hello, world!"}
+  ],
   "settings": [
     {
       "key": "greeting",

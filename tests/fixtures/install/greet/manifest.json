@@ -9,5 +9,8 @@
   "main": "plugin.py",
   "files": ["lib/greeting.py"],
   "keyword": "greet",
-  "global": false
+  "global": false,
+  "examples": [
+    {"query": "Ada", "description": "Greets Ada"}
+  ]
 }

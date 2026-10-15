@@ -15,6 +15,10 @@
   "icon": "folder-symbolic",
   "minQueryLength": 2,
   "timeout": 2000,
+  "examples": [
+    {"query": "report", "description": "Find files named like report with fd"},
+    {"query": "notes md", "description": "Every word must match"}
+  ],
   "settings": [
     {"key": "root", "type": "string", "default": "~", "title": "Search in"},
     {"key": "hidden", "type": "bool", "default": false, "title": "Include hidden files"}

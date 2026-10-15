@@ -12,5 +12,11 @@
   "priority": 10,
   "category": "actions",
   "icon": "accessories-calculator-symbolic",
-  "completion": false
+  "completion": false,
+  "examples": [
+    {"query": "2^10 / 3", "description": "Math, without the prefix too"},
+    {"query": "sqrt 2 + pi", "description": "Functions and constants"},
+    {"query": "0xff to bin", "description": "Convert between hex, binary, octal and decimal"},
+    {"query": "0b1010 & 0xf", "description": "Bitwise operators"}
+  ]
 }

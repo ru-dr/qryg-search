@@ -4,6 +4,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 import {scan, providerId, isValidKeyword, USER_PLUGIN_DIR} from '../lib/plugins/manifest.js';
+import {exampleText} from '../lib/plugins/guide.js';
 import {PluginSettings} from '../lib/plugins/settings.js';
 import {page, group, buttonRow, escape} from './widgets.js';
 import {installGroup} from './installRow.js';
@@ -54,7 +55,12 @@ function setEnabled(settings, manifest, enabled) {
     settings.set_strv('disabled-providers', [...off].sort());
 }
 
-function keywordRow(settings, manifest) {
+function currentKeyword(settings, manifest) {
+    const custom = readKeywords(settings)[manifest.id];
+    return custom === undefined ? manifest.keyword : custom || null;
+}
+
+function keywordRow(settings, manifest, onChanged) {
     const custom = readKeywords(settings)[manifest.id];
     const row = new Adw.EntryRow({
         title: escape(`Prefix (default: ${manifest.keyword ?? 'none'}; empty for none)`),
@@ -74,8 +80,17 @@ function keywordRow(settings, manifest) {
         else
             keywords[manifest.id] = value;
         settings.set_string('keywords', JSON.stringify(keywords));
+        onChanged();
     });
     return row;
+}
+
+function exampleRows(manifest) {
+    return manifest.examples.map(example => {
+        const row = new Adw.ActionRow({subtitle: escape(example.description)});
+        row.add_prefix(new Gtk.Image({icon_name: 'input-keyboard-symbolic'}));
+        return {row, example};
+    });
 }
 
 function settingRow(store, def) {
@@ -116,10 +131,8 @@ function settingRow(store, def) {
 }
 
 function pluginRow(settings, manifest, status) {
-    const keyword = manifest.keyword ? `  ·  prefix ${manifest.keyword}` : '';
     const row = new Adw.ExpanderRow({
         title: escape(manifest.name),
-        subtitle: escape(`${manifest.description}${keyword}`),
         show_enable_switch: true,
         enable_expansion: isEnabled(settings, manifest),
     });
@@ -133,7 +146,20 @@ function pluginRow(settings, manifest, status) {
         row.add_suffix(new Gtk.Image({icon_name: 'dialog-warning-symbolic', tooltip_text: status.lastError}));
         row.add_row(errorRow(status));
     }
-    row.add_row(keywordRow(settings, manifest));
+    const examples = exampleRows(manifest);
+    const showKeyword = () => {
+        const keyword = currentKeyword(settings, manifest);
+        row.subtitle = escape(`${manifest.description}  ·  ${keyword ? `prefix ${keyword}` : 'no prefix'}`);
+        for (const {row: exampleRow, example} of examples)
+            exampleRow.title = `<tt>${escape(exampleText(keyword, example.query) || '(prefix only)')}</tt>`;
+    };
+    showKeyword();
+    row.add_row(keywordRow(settings, manifest, showKeyword));
+    if (examples.length > 0) {
+        const heading = new Adw.ActionRow({title: 'How to use', subtitle: 'Type these in the search bar'});
+        row.add_row(heading);
+        examples.forEach(e => row.add_row(e.row));
+    }
     const store = new PluginSettings(settings, manifest);
     for (const def of manifest.settings)
         row.add_row(settingRow(store, def));

@@ -16,6 +16,7 @@ import zipfile
 from pathlib import Path
 
 from . import VERSION
+from .manifest import guide_problems
 from .ui import CliError
 
 KINDS = ("folder", "git", "subdir", "archive", "manifest")
@@ -132,6 +133,7 @@ def problems(manifest, has_file, api_version):
         found.append("api must be a whole number, such as 1")
     elif api > api_version:
         found.append(f"needs plugin API {api}, this QryG supports {api_version}; update QryG first")
+    found.extend(guide_problems(manifest))
     try:
         manifest_files(manifest)
     except CliError as error:

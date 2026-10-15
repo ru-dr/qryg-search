@@ -7,11 +7,17 @@
   "api": 1,
   "type": "js",
   "main": "plugin.js",
+  "keyword": "fx",
   "position": "top",
   "priority": 30,
   "category": "actions",
   "icon": "accessories-calculator-symbolic",
   "toggle": "feature-currency",
+  "examples": [
+    {"query": "50 usd to inr", "description": "Convert, also without the prefix"},
+    {"query": "100 eur", "description": "Convert to your target currencies"},
+    {"query": "2*15 gbp in jpy", "description": "Amounts can be math"}
+  ],
   "settings": [
     {
       "key": "currencies",

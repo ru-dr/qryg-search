@@ -8,7 +8,7 @@ from . import VERSION, remote
 from .bookmarks import BookmarkStore, kind_of
 from .doctor import run_doctor, shortcut_conflicts
 from .install import install, uninstall
-from .manifest import load as load_manifest
+from .manifest import example_text, guide_problems, load as load_manifest, normalize_examples
 from .paths import BOOKMARKS_FILE, EXTENSION_DIR, USER_PLUGINS, USER_STYLES, UUID
 from .plugins import PluginCatalog, is_word_keyword
 from .runner import resolve_settings, run_js, run_script
@@ -292,7 +292,8 @@ def _plugin_info(ctx, args):
     m = ctx.plugins.get(_require_id(args))
     print(bold(f"{m.get('name', m['id'])} {m.get('version', '')}") + f"  ({m['id']})")
     print(f"  {m.get('description', '')}")
-    print(f"  prefix    {ctx.plugins.keyword(m) or 'none'}")
+    prefix = ctx.plugins.keyword(m)
+    print(f"  prefix    {prefix or 'none'}")
     for key in ("type", "position", "category", "author", "api"):
         if m.get(key):
             print(f"  {key:<9} {m[key]}")
@@ -303,6 +304,18 @@ def _plugin_info(ctx, args):
     if m.get("settings"):
         print("  settings")
         table([(d["key"], fmt(ctx.plugins.setting(m, d)), d.get("title", "")) for d in m["settings"]])
+    _print_guide(m, prefix)
+
+
+def _print_guide(manifest, prefix):
+    examples = normalize_examples(manifest.get("examples"))
+    if examples:
+        print("  how to use")
+        table([(example_text(prefix, e["query"]), e["description"]) for e in examples])
+    if not prefix and manifest.get("keyword"):
+        print(dim(f"  the prefix is off: `qryg keyword {manifest['id']} default` brings back {manifest['keyword']}"))
+    for problem in guide_problems(manifest):
+        warn(f"not loaded: {problem}")
 
 
 def _plugin_toggle(ctx, args):

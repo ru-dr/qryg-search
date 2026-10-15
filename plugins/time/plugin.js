@@ -130,14 +130,14 @@ export default class TimePlugin {
         }).filter(Boolean);
     }
 
-    async query({query}) {
+    async query({query, forced}) {
         const low = query.toLowerCase();
-        if (/^(now|time|date|unix|epoch|timestamp)$/.test(low))
+        if (/^(now|time|date|unix|epoch|timestamp)$/.test(low) || (forced && !low))
             return [...rows(Date.now() / 1000, true), ...await this._clocks()];
         const m = /^(?:ts\s+)?(\d{10}|\d{13})$/.exec(low);
         if (m)
             return rows(m[1].length === 13 ? Number(m[1]) / 1000 : Number(m[1]), false);
-        const place = Z.parsePlace(query);
+        const place = Z.parsePlace(query) ?? (forced ? query.replace(/^(?:in|at)\s+/i, '').trim() || null : null);
         return place ? this._world(place) : [];
     }
 }

@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 
 from . import remote
+from .manifest import is_word_keyword  # noqa: F401  re-exported for commands and tests
 from .paths import EXTENSION_DIR, REPO, USER_PLUGINS
 from .settings import FALSE_WORDS, TRUE_WORDS, quote, string_list
 from .ui import CliError
@@ -86,10 +87,6 @@ if [ -z "$query" ]; then
 fi
 python3 -c 'import json, sys; q = sys.argv[1]; print(json.dumps({"results": [{"title": "You typed: " + q, "copy": q, "activate": {"copy": q}}]}))' "$query"
 """
-
-
-def is_word_keyword(keyword):
-    return bool(keyword) and keyword[0].isalnum()
 
 
 class PluginCatalog:
@@ -226,6 +223,7 @@ class PluginCatalog:
             "id": plugin_id, "name": plugin_id.replace("-", " ").title(), "description": "Describe what it does.",
             "version": "0.1.0", "author": author, "api": 1, "type": kind, "keyword": plugin_id.split("-")[0],
             "position": "bottom", "priority": 50, "category": "general", "icon": "application-x-addon-symbolic",
+            "examples": [{"query": "hello", "description": "Shows what you typed. Replace these with your own examples."}],
             "settings": [],
         }
         if kind == "js":

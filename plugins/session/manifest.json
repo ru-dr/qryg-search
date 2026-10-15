@@ -7,10 +7,17 @@
   "api": 1,
   "type": "js",
   "main": "plugin.js",
+  "keyword": "session",
   "position": "top",
   "priority": 60,
   "category": "actions",
   "icon": "system-shutdown-symbolic",
   "minQueryLength": 3,
-  "completion": false
+  "completion": false,
+  "examples": [
+    {"query": "", "description": "Every session action"},
+    {"query": "lock", "description": "Lock the screen, also without the prefix"},
+    {"query": "suspend", "description": "Suspend, or hibernate when it is available"},
+    {"query": "restart", "description": "Restart, log out or power off, after GNOME asks"}
+  ]
 }

@@ -53,16 +53,22 @@
     {"source": "git@github.com:you/repo.git", "path": "a", "expect": null}
   ],
   "manifests": [
-    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js"}, "files": {"plugin.js": false}, "ok": true},
-    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js"}, "files": {}, "ok": false},
-    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "main": "plugin.py"}, "files": {"plugin.py": false}, "ok": false},
-    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "main": "plugin.py"}, "files": {"plugin.py": true}, "ok": true},
-    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "command": ["python3", "plugin.py"]}, "files": {}, "ok": true},
-    {"manifest": {"id": "Hello!", "name": "Hello", "type": "js", "main": "plugin.js"}, "files": {"plugin.js": false}, "ok": false},
-    {"manifest": {"id": "hello", "type": "js", "main": "plugin.js"}, "files": {"plugin.js": false}, "ok": false},
-    {"manifest": {"id": "hello", "name": "Hello", "type": "python", "main": "plugin.py"}, "files": {"plugin.py": true}, "ok": false},
-    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "api": 99}, "files": {"plugin.js": false}, "ok": false},
-    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "files": ["../x"]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.js": false}, "ok": true},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "main": "plugin.py", "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.py": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "main": "plugin.py", "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.py": true}, "ok": true},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "command": ["python3", "plugin.py"], "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {}, "ok": true},
+    {"manifest": {"id": "Hello!", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "type": "js", "main": "plugin.js", "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "python", "main": "plugin.py", "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.py": true}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "api": 99, "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "files": ["../x"], "keyword": "hi", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "hi"}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "hi", "examples": []}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "hi", "examples": [{"query": "you"}]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "two words", "examples": [{"query": "you", "description": "Says hello"}]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "keyword": "hi", "examples": [{"query": "", "description": "Prefix only"}]}, "files": {"plugin.js": false}, "ok": true},
     {"manifest": ["not", "an", "object"], "files": {}, "ok": false}
   ]
 }

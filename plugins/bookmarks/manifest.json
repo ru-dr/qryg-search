@@ -10,5 +10,10 @@
   "keyword": "*",
   "position": "after-apps",
   "priority": 10,
-  "icon": "user-bookmarks-symbolic"
+  "icon": "user-bookmarks-symbolic",
+  "examples": [
+    {"query": "docs", "description": "Find a bookmark by name"},
+    {"query": "+ ~/Projects", "description": "Bookmark a folder, file, site or command"},
+    {"query": "", "description": "List every bookmark"}
+  ]
 }
