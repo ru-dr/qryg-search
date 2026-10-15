@@ -1,0 +1,34 @@
+{
+  "id": "emoji",
+  "name": "Emoji",
+  "description": "Search every emoji by name or keyword and copy it.",
+  "version": "1.0.0",
+  "author": "QryG Search",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": ":",
+  "global": false,
+  "position": "bottom",
+  "priority": 75,
+  "icon": "face-smile-symbolic",
+  "minQueryLength": 2,
+  "completion": false,
+  "settings": [
+    {
+      "key": "skin-tone",
+      "type": "choice",
+      "choices": [
+        "none",
+        "light",
+        "medium-light",
+        "medium",
+        "medium-dark",
+        "dark"
+      ],
+      "default": "none",
+      "title": "Skin tone",
+      "description": "Applied to emoji that support it"
+    }
+  ]
+}

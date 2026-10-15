@@ -1,0 +1,18 @@
+{
+  "id": "processes",
+  "name": "Processes",
+  "description": "Find your own processes and stop them. Enter asks a process to quit, Force kill ends it. Session processes are never listed.",
+  "version": "1.0.0",
+  "author": "QryG Search",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "kill",
+  "global": false,
+  "position": "bottom",
+  "priority": 85,
+  "category": "actions",
+  "icon": "process-stop-symbolic",
+  "minQueryLength": 0,
+  "completion": false
+}
