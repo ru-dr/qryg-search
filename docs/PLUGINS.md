@@ -89,7 +89,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `type` | yes | — | `"js"` or `"script"`. |
 | `main` | yes* | — | `js`: the module, ending in `.js`. `script`: an executable file in the folder (`chmod +x`). |
 | `command` | no | — | `script` only: an argv array used instead of `main`, such as `["node", "plugin.mjs"]`. |
-| `api` | no | `1` | The plugin API version it was written for. QryG refuses plugins that need a newer API. |
+| `api` | no | `1` | The plugin API version it was written for, a whole number; `null` counts as left out. QryG refuses plugins that need a newer API. |
 | `keyword` | yes | — | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
 | `examples` | yes | — | The usage guide: 1 to 10 `["what to type", "what it does"]` pairs. See [Usage guide](#usage-guide). |
 | `global` | no | `true` | Show results without the prefix. Set this to `false` for anything noisy or slow. |
@@ -101,7 +101,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `timeout` | no | `1500` | The time limit in milliseconds for each query, and for each script request, from 100 to 10000. |
 | `persistent` | no | `false` | `script` only: keep one process running instead of starting one per request. See [Long-running script plugins](#long-running-script-plugins). |
 | `startupTimeout` | no | `5000` | Persistent `script` only: extra milliseconds allowed while the process starts, from 0 to 30000. |
-| `toggle` | no | — | The name of a boolean QryG setting that also turns the plugin on and off. Used by bundled plugins. |
+| `toggle` | no | — | The name of a boolean QryG setting that also turns the plugin on and off. Only bundled plugins can use it; it is ignored for installed ones. |
 | `icon` | no | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
 | `description`, `version`, `author` | no | — | Shown in preferences and `qryg plugin info`. |
 | `settings` | no | `[]` | User settings. See [Settings](#settings). |
@@ -183,6 +183,10 @@ export default class Weather {
 | `api.connect(object, signal, fn)` | Connect to a GObject signal. Returns a function that disconnects it. |
 | `api.fetchJson(url, options)` | Fetch and parse JSON over HTTP. See [Helpers](#helpers). |
 | `api.match(text, query)` | Score how well `query` matches `text`, from 0 to 100, or `null`. See [Helpers](#helpers). |
+| `api.matchWords(fields, query)` | Like `api.match`, but every word of `query` must appear somewhere in `fields`, a string or an array of strings, in any order. |
+| `api.readText(path, cancellable)` | A Promise of a file's text, or `''` when it can't be read. |
+| `api.copyRow(title, subtitle, icon, extra)` | A result that copies `extra.copy`, or else `title`, on Enter. Other fields of `extra`, such as `preview` or `score`, are added to it. |
+| `api.warningRow(title, subtitle)` | A result with a warning icon, for input the plugin can't use. |
 
 Timers, idle callbacks, signal connections and settings watches made through `api` are removed when the plugin is destroyed, so you don't need to track them yourself. Calling a returned stop function early is safe.
 
@@ -260,7 +264,7 @@ The limits:
 
 - the process is killed after `timeout` milliseconds, or when the user keeps typing
 - output over 512 KB is rejected
-- stderr is discarded, so print debug output to a file
+- a non-zero exit status is an error, reported as `exit N:` and the last line of stderr; otherwise stderr is discarded, so print debug output to a file
 - every keystroke starts a new process, so keep startup fast, or use a [long-running process](#long-running-script-plugins)
 
 A minimal Bash plugin:
@@ -300,7 +304,7 @@ Each request is one line of JSON on stdin with an `id`. Each reply is one line o
   - `{"method": "ready"}` says startup is done
   - `{"method": "error", "message": "…"}` reports a problem, which shows under the plugin in Preferences → Plugins
 - Until the process prints its first line, requests are allowed `timeout` plus `startupTimeout` milliseconds, so a slow start doesn't fail the first query. Print `{"method": "ready"}` as soon as you can answer.
-- If the process exits, QryG restarts it on the next request. After three crashes within a minute it stops trying until plugins are reloaded.
+- If the process exits, QryG restarts it on the next request. If it leaves three requests in a row unanswered, QryG ends it, and the next request starts a new one. After three crashes or restarts within a minute it stops trying until plugins are reloaded.
 - The process is stopped on reload, when the plugin is disabled, and at logout. When the plugin is turned back on, the next request starts it again.
 
 ```python
@@ -399,7 +403,7 @@ Effects describe what should happen, so script plugins can act without any API. 
 | `copy` | Copies the text |
 | `open` | Opens a path, `file://`, `https://` or any URI with its default handler |
 | `exec` | Runs an argv array in the background, without a shell, from the plugin folder |
-| `terminal` | Runs a shell command in the user's terminal |
+| `terminal` | Runs a shell command in the user's terminal, from the home folder |
 | `notify` | Shows a notification |
 
 ## Actions
@@ -577,7 +581,7 @@ If a repository has no `manifest.json` at its root, QryG looks one level down an
 
 Before anything is written, QryG checks the manifest (`id`, `name`, `type`, `main`, and `api` no newer than QryG's) and shows what it is about to install: the name, id, version, author, what the plugin type can do, where it comes from, the folder it goes to, and the plugin it replaces, followed by the warning above with the source to review. It then asks `Install? [y/N]`. Pass `--yes` (`-y`) to skip the question; without a terminal, such as in a script, `--yes` is required. The new copy is built beside the old one and swapped in, so a failed install leaves the old plugin as it was.
 
-Archives are checked before they are unpacked: no absolute paths, no `..`, no links pointing outside the plugin, and at most 50 MB. Downloads time out after 30 seconds.
+Archives are checked before they are unpacked: no absolute paths, no `..`, no links pointing outside the plugin, and at most 50 MB. Downloads time out after 30 seconds. Whatever the source, a plugin with a link that leads outside its folder is refused, and links inside it are copied as links.
 
 The source is recorded in `.qryg-search-source.json` inside the installed folder, as `{"source": "…", "kind": "git" | "subdir" | "archive" | "manifest" | "folder", "ref": "main" | null}`, which is what `qryg plugin update` fetches again.
 

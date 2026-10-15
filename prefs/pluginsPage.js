@@ -5,8 +5,9 @@ import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 import {scan, providerId, isValidKeyword, USER_PLUGIN_DIR} from '../lib/plugins/manifest.js';
 import {exampleText} from '../lib/plugins/guide.js';
+import {isPluginEnabled, resolveKeyword} from '../lib/plugins/rules.js';
 import {PluginSettings} from '../lib/plugins/settings.js';
-import {page, group, buttonRow, escape} from './widgets.js';
+import {page, group, buttonRow, escape, watchSetting} from './widgets.js';
 import {installGroup} from './installRow.js';
 
 function readKeywords(settings) {
@@ -39,32 +40,30 @@ function errorRow(status) {
 }
 
 function isEnabled(settings, manifest) {
-    const off = settings.get_strv('disabled-providers').includes(providerId(manifest.id));
-    return !off && (!manifest.toggle || settings.get_boolean(manifest.toggle));
+    return isPluginEnabled(manifest, settings.get_strv('disabled-providers'), key => settings.get_boolean(key));
 }
 
 function setEnabled(settings, manifest, enabled) {
     const off = new Set(settings.get_strv('disabled-providers'));
     if (enabled) {
         off.delete(providerId(manifest.id));
-        if (manifest.toggle)
-            settings.set_boolean(manifest.toggle, true);
+        if (manifest.toggle) {
+            try {
+                settings.set_boolean(manifest.toggle, true);
+            } catch (e) {
+                logError(e, `qryg-search: ${manifest.id} has a bad toggle`);
+            }
+        }
     } else {
         off.add(providerId(manifest.id));
     }
     settings.set_strv('disabled-providers', [...off].sort());
 }
 
-function currentKeyword(settings, manifest) {
-    const custom = readKeywords(settings)[manifest.id];
-    return custom === undefined ? manifest.keyword : custom || null;
-}
-
 function keywordRow(settings, manifest, onChanged) {
-    const custom = readKeywords(settings)[manifest.id];
     const row = new Adw.EntryRow({
         title: escape(`Prefix (default: ${manifest.keyword ?? 'none'}; empty for none)`),
-        text: custom ?? manifest.keyword ?? '',
+        text: resolveKeyword(readKeywords(settings)[manifest.id], manifest) ?? '',
         show_apply_button: true,
     });
     row.connect('apply', () => {
@@ -148,7 +147,7 @@ function pluginRow(settings, manifest, status) {
     }
     const examples = exampleRows(manifest);
     const showKeyword = () => {
-        const keyword = currentKeyword(settings, manifest);
+        const keyword = resolveKeyword(readKeywords(settings)[manifest.id], manifest);
         row.subtitle = escape(`${manifest.description}  ·  ${keyword ? `prefix ${keyword}` : 'no prefix'}`);
         for (const {row: exampleRow, example} of examples)
             exampleRow.title = `<tt>${escape(exampleText(keyword, example.query) || '(prefix only)')}</tt>`;
@@ -200,13 +199,19 @@ export function buildPluginsPage(context) {
         shown = pluginGroups(settings, path);
         shown.forEach(g => result.add(g));
     };
+    const reload = () => {
+        settings.set_int('plugins-reload', settings.get_int('plugins-reload') + 1);
+        refresh();
+    };
     const result = page('Plugins', 'application-x-addon-symbolic', [group('Plugins', [
         buttonRow('Your plugins folder', USER_PLUGIN_DIR, [
             {label: 'Open', onClicked: openUserFolder},
-            {label: 'Reload', onClicked: () => settings.set_int('plugins-reload', settings.get_int('plugins-reload') + 1)},
+            {label: 'Reload', onClicked: reload},
         ]),
     ], 'Turn plugins on or off, change their prefix and settings. Create one with `qryg plugin new`.'),
     installGroup(context, refresh)]);
     refresh();
+    // GNOME Shell writes plugin-status a few seconds after it loads plugins, so errors show up once it has.
+    watchSetting(settings, 'plugin-status', refresh);
     return result;
 }

@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// The digits of a hex color, without the "#".
+export const HEX_DIGITS = /^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+
 function clamp(v, lo, hi) {
     return Math.min(hi, Math.max(lo, v));
 }
@@ -22,8 +25,8 @@ function hslToRgb(h, s, l) {
 export function parseColor(input) {
     const q = input.trim().toLowerCase();
     let m;
-    if ((m = /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/.exec(q)))
-        return fromHex(m[1]);
+    if (q.startsWith('#') && HEX_DIGITS.test(q.slice(1)))
+        return fromHex(q.slice(1));
     if ((m = /^rgba?\(\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*(?:[,/]\s*([\d.]+%?)\s*)?\)$/.exec(q))) {
         const a = m[4] === undefined ? 1 : m[4].endsWith('%') ? parseFloat(m[4]) / 100 : parseFloat(m[4]);
         return {r: clamp(+m[1], 0, 255), g: clamp(+m[2], 0, 255), b: clamp(+m[3], 0, 255), a: clamp(a, 0, 1)};

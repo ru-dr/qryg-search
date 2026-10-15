@@ -24,7 +24,10 @@ def normalize(target):
     if target.startswith(">") or URI.match(target):
         return target
     path = Path(target).expanduser()
-    return str(path.resolve()).replace(str(Path.home()), "~", 1) if path.exists() else target
+    if not path.exists():
+        return target
+    path = path.resolve()
+    return f"~/{path.relative_to(Path.home())}" if path.is_relative_to(Path.home()) and path != Path.home() else str(path)
 
 
 class BookmarkStore:

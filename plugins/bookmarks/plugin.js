@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Gio from 'gi://Gio';
 import * as Bookmarks from '../../lib/core/bookmarks.js';
+import {capitalize, matchWords} from '../../lib/plugins/text.js';
+import {toUrl} from '../../lib/plugins/url.js';
 
 const ICONS = {
     command: 'utilities-terminal-symbolic',
@@ -41,7 +43,7 @@ export default class BookmarksPlugin {
         }
         const target = Bookmarks.normalizeTarget(parsed.target);
         const name = parsed.name || Bookmarks.defaultName(target);
-        const kind = Bookmarks.kindOf(target);
+        const kind = Bookmarks.bookmarkKind(target);
         const exists = Bookmarks.find(target);
         return [{
             id: 'add',
@@ -59,38 +61,37 @@ export default class BookmarksPlugin {
     query({query, forced}) {
         if (forced && query.startsWith('+'))
             return this._addRow(query.slice(1));
-        const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-        if (!forced && words.length === 0)
+        if (!forced && !query)
             return [];
         const rows = [];
         for (const b of this._bookmarks()) {
-            const hay = `${b.name} ${b.target} ${(b.tags ?? []).join(' ')}`.toLowerCase();
-            if (!words.every(w => hay.includes(w)))
+            const score = matchWords([b.name, b.target, ...(b.tags ?? [])], query);
+            if (score === null)
                 continue;
-            const kind = b.type ?? Bookmarks.kindOf(b.target);
+            const kind = b.type ?? Bookmarks.bookmarkKind(b.target);
+            const label = `${capitalize(kind)} bookmark`;
             const target = b.target;
             let activate;
             if (kind === 'command')
                 activate = {terminal: target.replace(/^>\s*/, '')};
             else if (kind === 'site')
-                activate = {open: /^https?:\/\//i.test(target) ? target : `https://${target}`};
+                activate = {open: toUrl(target)};
             else
                 activate = {open: target};
             rows.push({
                 id: b.name,
                 title: b.name,
-                subtitle: `${kind[0].toUpperCase()}${kind.slice(1)} bookmark · ${target}`,
+                subtitle: `${label} · ${target}`,
                 icon: ICONS[kind] ?? 'user-bookmarks-symbolic',
-                kind: `${kind[0].toUpperCase()}${kind.slice(1)} bookmark`,
+                kind: label,
+                score: query ? score : undefined,
                 copy: target.replace(/^>\s*/, ''),
-                path: kind === 'file' || kind === 'folder' ? Bookmarks.expandPath(target) : undefined,
+                path: kind === 'file' || kind === 'folder' ? this.api.expandPath(target) : undefined,
                 bookmarkName: b.name,
                 activate,
                 preview: {kind: `${kind} bookmark`, details: [['Target', target], ...(b.tags?.length ? [['Tags', b.tags.join(', ')]] : [])]},
-                starts: b.name.toLowerCase().startsWith(words[0] ?? ''),
             });
         }
-        rows.sort((a, b) => Number(b.starts) - Number(a.starts));
         if (forced && rows.length === 0 && query)
             return this._addRow(query);
         return rows;

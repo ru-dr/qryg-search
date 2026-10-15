@@ -114,6 +114,19 @@ class SharedCaseTests(unittest.TestCase):
                 self.assertEqual(not remote.problems(case["manifest"], has_file, 1), case["ok"])
 
 
+class FolderLinkTests(unittest.TestCase):
+    def test_links_outside_the_folder_are_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp, "plugin")
+            folder.mkdir()
+            (folder / "inside.txt").write_text("x")
+            (folder / "ok").symlink_to("inside.txt")
+            remote.check_links(folder)
+            (folder / "home").symlink_to(Path.home())
+            with self.assertRaises(CliError):
+                remote.check_links(folder)
+
+
 class ArchiveTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())

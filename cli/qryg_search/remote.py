@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Fetches a plugin from a folder, git repository, repository subfolder, archive or manifest URL.
 # lib/plugins/remote.js and lib/plugins/installer.js do the same for the preferences window: keep them in step.
-import json
+# The manifest rules live in manifest.py, like lib/plugins/rules.js.
 import os
 import re
 import shutil
 import stat
-import subprocess
 import tarfile
 import tempfile
 import urllib.error
@@ -16,16 +15,15 @@ import zipfile
 from pathlib import Path
 
 from . import VERSION
-from .manifest import guide_problems
+from .manifest import has_file_in, loads, manifest_files, manifest_problems as problems, safe_relative
+from .system import git as run_git
 from .ui import CliError
 
-KINDS = ("folder", "git", "subdir", "archive", "manifest")
 ARCHIVE_SUFFIXES = (".zip", ".tar.gz", ".tgz", ".tar.xz")
 MAX_BYTES = 50 * 1024 * 1024
 MAX_MANIFEST_BYTES = 1024 * 1024
 TIMEOUT = 30
 USER_AGENT = f"qryg-search/{VERSION} (+https://github.com/ru-dr/qryg-search)"
-PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 URL = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://")
 SCP = re.compile(r"^[\w.-]+@[\w.-]+:")
 GIT_SCHEMES = ("http", "https", "ssh", "git", "file")
@@ -45,15 +43,6 @@ RISKS = {
 
 def is_url(source):
     return bool(URL.match(source) or SCP.match(source))
-
-
-def safe_relative(path, what="path"):
-    if not isinstance(path, str) or not path or path.startswith("/") or "\\" in path:
-        raise CliError(f"{what} {json.dumps(path)} must be a relative path inside the plugin")
-    parts = [part for part in path.split("/") if part not in ("", ".")]
-    if not parts or ".." in parts:
-        raise CliError(f"{what} {json.dumps(path)} must be a relative path inside the plugin")
-    return "/".join(parts)
 
 
 def classify(source):
@@ -91,69 +80,18 @@ def subfolder_url(repo, path, ref="HEAD"):
     return f"{base}{style}{ref}/{path}"
 
 
-def manifest_files(manifest):
-    files = manifest.get("files", [])
-    if not isinstance(files, list):
-        raise CliError('"files" must be a list of relative paths')
-    wanted = [manifest["main"]] if isinstance(manifest.get("main"), str) else []
-    result = []
-    for path in wanted + files:
-        clean = safe_relative(path, "file")
-        if clean != "manifest.json" and clean not in result:
-            result.append(clean)
-    return result
-
-
 def file_url(base, path):
     return urllib.parse.urljoin(base, urllib.parse.quote(path))
 
 
-def problems(manifest, has_file, api_version):
-    if not isinstance(manifest, dict):
-        return ["manifest.json must be a JSON object"]
-    found = []
-    if not (isinstance(manifest.get("id"), str) and PLUGIN_ID.fullmatch(manifest["id"])):
-        found.append("id must be lowercase letters, digits and dashes")
-    if not isinstance(manifest.get("name"), str) or not manifest["name"].strip():
-        found.append("name is required")
-    kind, main, command = manifest.get("type"), manifest.get("main"), manifest.get("command")
-    if kind not in ("js", "script"):
-        found.append('type must be "js" or "script"')
-    elif kind == "js" and not (isinstance(main, str) and main.endswith(".js")):
-        found.append('js plugins need "main": "plugin.js"')
-    elif kind == "js" and not has_file(main, False):
-        found.append(f"{main} not found")
-    elif kind == "script" and not (isinstance(command, list) and command):
-        if not isinstance(main, str):
-            found.append('script plugins need "main" (an executable) or "command" (an argv array)')
-        elif not has_file(main, True):
-            found.append(f"{main} is missing or not executable (chmod +x)")
-    api = manifest.get("api", api_version)
-    if not isinstance(api, int) or isinstance(api, bool) or api < 1:
-        found.append("api must be a whole number, such as 1")
-    elif api > api_version:
-        found.append(f"needs plugin API {api}, this QryG supports {api_version}; update QryG first")
-    found.extend(guide_problems(manifest))
-    try:
-        manifest_files(manifest)
-    except CliError as error:
-        found.append(str(error))
-    return found
-
-
 def check(folder, api_version):
     try:
-        manifest = json.loads((folder / "manifest.json").read_text())
+        manifest = loads((folder / "manifest.json").read_text())
     except OSError:
         raise CliError(f"{folder} has no manifest.json")
     except ValueError as error:
         raise CliError(f"manifest.json is not valid JSON: {error}")
-
-    def has_file(path, executable):
-        file = folder / path
-        return file.is_file() and (not executable or os.access(file, os.X_OK))
-
-    found = problems(manifest, has_file, api_version)
+    found = problems(manifest, has_file_in(folder), api_version)
     if found:
         raise CliError("this plugin cannot be installed: " + "; ".join(found))
     return manifest
@@ -196,13 +134,7 @@ def download(url, dest, limit):
 
 
 def git(*args, cwd=None):
-    try:
-        result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True,
-                                env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
-    except FileNotFoundError:
-        raise CliError("git is not installed; install it to fetch plugins from git")
-    if result.returncode != 0:
-        raise CliError(result.stderr.strip().splitlines()[-1] if result.stderr.strip() else f"git {args[0]} failed")
+    return run_git(*args, cwd=cwd, missing="git is not installed; install it to fetch plugins from git")
 
 
 def fetch_git(spec, dest):
@@ -337,7 +269,7 @@ def fetch(spec, tmp):
     folder.mkdir()
     download(spec["source"], folder / "manifest.json", MAX_MANIFEST_BYTES)
     try:
-        manifest = json.loads((folder / "manifest.json").read_text())
+        manifest = loads((folder / "manifest.json").read_text())
     except ValueError as error:
         raise CliError(f"{spec['source']} is not valid JSON: {error}")
     if not isinstance(manifest, dict):
@@ -353,6 +285,14 @@ def fetch(spec, tmp):
 
 
 # Builds the new folder beside the old one and swaps it in, so a failed install keeps the old plugin.
+def check_links(folder):
+    """Refuses links that lead outside the plugin folder, so copying never pulls in other files."""
+    root = folder.resolve()
+    for path in folder.rglob("*"):
+        if path.is_symlink() and not path.resolve().is_relative_to(root):
+            raise CliError(f"{path.relative_to(folder)} links outside the plugin folder")
+
+
 def replace_dir(folder, target, link=False, extra=None):
     target.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(dir=target.parent.parent, prefix=".install-"))
@@ -361,7 +301,8 @@ def replace_dir(folder, target, link=False, extra=None):
         if link:
             new.symlink_to(folder)
         else:
-            shutil.copytree(folder, new, ignore=shutil.ignore_patterns(*IGNORED))
+            check_links(folder)
+            shutil.copytree(folder, new, symlinks=True, ignore=shutil.ignore_patterns(*IGNORED))
             for name, text in (extra or {}).items():
                 (new / name).write_text(text)
         if target.is_symlink() or target.exists():

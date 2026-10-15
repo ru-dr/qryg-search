@@ -2,7 +2,7 @@
 import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
-import {page, group, buttonRow} from './widgets.js';
+import {page, group, buttonRow, watchSetting} from './widgets.js';
 
 const MODIFIER_KEYS = [
     Gdk.KEY_Control_L, Gdk.KEY_Control_R, Gdk.KEY_Shift_L, Gdk.KEY_Shift_R,
@@ -54,7 +54,7 @@ function shortcutRow(settings) {
     });
     row.add_suffix(label);
     row.add_controller(controller);
-    settings.connect('changed::toggle-shortcut', show);
+    watchSetting(settings, 'toggle-shortcut', show);
     show();
     return row;
 }

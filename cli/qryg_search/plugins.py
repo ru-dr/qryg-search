@@ -1,21 +1,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import json
 import re
-import shutil
 import tempfile
 import time
 from pathlib import Path
 
 from . import remote
-from .manifest import is_word_keyword  # noqa: F401  re-exported for commands and tests
-from .paths import EXTENSION_DIR, REPO, USER_PLUGINS
-from .settings import FALSE_WORDS, TRUE_WORDS, quote, string_list
+from .manifest import API_VERSION, KEYWORD, MAX_KEYWORD, PLUGIN_ID
+from .paths import EXTENSION_DIR, REPO, USER_PLUGINS, provider_id
+from .settings import FALSE_WORDS, TRUE_WORDS, quote
+from .system import remove_path
 from .ui import CliError
 
-API_VERSION = 1
 SOURCE_FILE = ".qryg-search-source.json"
-PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
-KEYWORD = re.compile(r"^\S{1,12}$")
 
 SCAFFOLD_JS = """// SPDX-License-Identifier: GPL-3.0-or-later
 export default class Plugin {
@@ -94,6 +91,11 @@ class PluginCatalog:
         self._settings = settings
 
     @staticmethod
+    def bundled_dirs():
+        """Folders whose plugins count as bundled: the installed extension's and this checkout's."""
+        return {folder.resolve() for folder in (EXTENSION_DIR / "plugins", REPO / "plugins") if folder.is_dir()}
+
+    @staticmethod
     def bundled_dir():
         for folder in (EXTENSION_DIR / "plugins", REPO / "plugins"):
             if folder.is_dir():
@@ -106,7 +108,7 @@ class PluginCatalog:
             manifest = json.loads((folder / "manifest.json").read_text())
         except (OSError, ValueError):
             return None
-        if not isinstance(manifest, dict) or not PLUGIN_ID.match(str(manifest.get("id", ""))):
+        if not isinstance(manifest, dict) or not PLUGIN_ID.fullmatch(str(manifest.get("id", ""))):
             return None
         manifest["_dir"] = folder
         return manifest
@@ -138,26 +140,20 @@ class PluginCatalog:
         return keys
 
     def is_enabled(self, manifest):
-        if f"qryg-search-{manifest['id']}" in self._settings.get("disabled-providers"):
+        if provider_id(manifest["id"]) in self._settings.get("disabled-providers"):
             return False
         toggle = manifest.get("toggle")
         return bool(self._settings.get(toggle)) if toggle else True
 
     def set_enabled(self, manifest, enabled):
-        disabled = set(self._settings.get("disabled-providers"))
-        provider_id = f"qryg-search-{manifest['id']}"
-        if enabled:
-            disabled.discard(provider_id)
-            if manifest.get("toggle"):
-                self._settings.set_variant(manifest["toggle"], "true")
-        else:
-            disabled.add(provider_id)
-        self._settings.set_variant("disabled-providers", string_list(sorted(disabled)))
+        self._settings.set_in_list("disabled-providers", provider_id(manifest["id"]), not enabled)
+        if enabled and manifest.get("toggle"):
+            self._settings.set_variant(manifest["toggle"], "true")
 
     def keyword(self, manifest):
-        custom = self._settings.get_json("keywords")
-        if manifest["id"] in custom:
-            return custom[manifest["id"]] or None
+        custom = self._settings.get_json("keywords").get(manifest["id"])
+        if custom == "" or (isinstance(custom, str) and KEYWORD.fullmatch(custom)):
+            return custom or None
         return manifest.get("keyword") or None
 
     def set_keyword(self, manifest, value):
@@ -166,7 +162,7 @@ class PluginCatalog:
             custom.pop(manifest["id"], None)
         elif value in ("none", ""):
             custom[manifest["id"]] = ""
-        elif KEYWORD.match(value):
+        elif KEYWORD.fullmatch(value):
             custom[manifest["id"]] = value
         else:
             raise CliError("a prefix is 1 to 12 characters without spaces, or `none`, or `default`")
@@ -213,7 +209,7 @@ class PluginCatalog:
             self._settings.bump("plugins-reload")
 
     def create(self, plugin_id, kind, language, author):
-        if not PLUGIN_ID.match(plugin_id):
+        if not PLUGIN_ID.fullmatch(plugin_id):
             raise CliError("plugin ids use lowercase letters, digits and dashes")
         target = USER_PLUGINS / plugin_id
         if target.exists():
@@ -221,7 +217,8 @@ class PluginCatalog:
         target.mkdir(parents=True)
         manifest = {
             "id": plugin_id, "name": plugin_id.replace("-", " ").title(), "description": "Describe what it does.",
-            "version": "0.1.0", "author": author, "api": 1, "type": kind, "keyword": plugin_id.split("-")[0],
+            "version": "0.1.0", "author": author, "api": API_VERSION, "type": kind,
+            "keyword": plugin_id.split("-")[0][:MAX_KEYWORD],
             "position": "bottom", "priority": 50, "category": "general", "icon": "application-x-addon-symbolic",
             "examples": [["hello", "Shows what you typed. Replace these with your own examples."]],
             "settings": [],
@@ -295,10 +292,3 @@ def describe_range(low, high):
     if low is not None and high is not None:
         return f"between {low} and {high}"
     return f"at least {low}" if low is not None else f"at most {high}"
-
-
-def remove_path(path):
-    if path.is_symlink() or path.is_file():
-        path.unlink()
-    elif path.exists():
-        shutil.rmtree(path)

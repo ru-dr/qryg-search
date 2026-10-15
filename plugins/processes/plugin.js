@@ -3,24 +3,16 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import Shell from 'gi://Shell';
 import * as P from './proc.js';
+import {readText} from '../../lib/plugins/helpers.js';
+import {PREVIEW_CODE_CHARS, truncate} from '../../lib/plugins/text.js';
 
 Gio._promisify(Gio.File.prototype, 'enumerate_children_async');
-Gio._promisify(Gio.File.prototype, 'load_contents_async');
 Gio._promisify(Gio.FileEnumerator.prototype, 'next_files_async');
 Gio._promisify(Gio.Subprocess.prototype, 'wait_check_async');
 
 const ICON = 'application-x-executable-symbolic';
 const MAX_RESULTS = 30;
 const SNAPSHOT_US = 2 * 1000 * 1000;
-
-async function readText(path, cancellable) {
-    try {
-        const [bytes] = await Gio.File.new_for_path(path).load_contents_async(cancellable);
-        return new TextDecoder().decode(bytes);
-    } catch {
-        return '';
-    }
-}
 
 export default class ProcessesPlugin {
     constructor(api) {
@@ -119,7 +111,7 @@ export default class ProcessesPlugin {
                 kind: 'Process',
                 icon: app ? {app: app.get_id()} : ICON,
                 body: 'Enter sends SIGTERM, which asks it to quit and save its work. Force kill sends SIGKILL, which ends it at once.',
-                code: command.length > 600 ? `${command.slice(0, 600)}…` : command,
+                code: truncate(command, PREVIEW_CODE_CHARS),
                 details: [['PID', `${proc.pid}`], ['Parent', `${proc.ppid}`], ['Memory', memory], ['Threads', `${proc.threads}`]],
             },
         };

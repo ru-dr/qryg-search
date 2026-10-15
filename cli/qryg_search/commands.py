@@ -10,8 +10,8 @@ from .doctor import run_doctor, shortcut_conflicts
 from . import update as updater
 from .install import install, uninstall
 from .manifest import example_text, guide_problems, load as load_manifest, normalize_examples
-from .paths import BOOKMARKS_FILE, EXTENSION_DIR, REPO, USER_PLUGINS, USER_STYLES, UUID
-from .plugins import PluginCatalog, is_word_keyword
+from .paths import BOOKMARKS_FILE, CLI_SCRIPT, EXTENSION_DIR, USER_PLUGINS, USER_STYLES, UUID
+from .plugins import PluginCatalog
 from .runner import resolve_settings, run_js, run_script
 from .settings import Settings, quote
 from .sources import SourceCatalog
@@ -43,6 +43,11 @@ class Context:
         return [k for k in self.settings.keys if k.startswith("feature-") and k not in plugin_keys]
 
 
+def _shortcut_text(ctx):
+    shortcuts = ctx.settings.get("toggle-shortcut")
+    return shortcuts[0] if shortcuts else "none"
+
+
 def _accelerator(text):
     if "<" in text:
         return text
@@ -64,7 +69,7 @@ def status(ctx, _args):
     enabled = [m["id"] for m in ctx.plugins.all().values() if ctx.plugins.is_enabled(m)]
     print(f"  path      {EXTENSION_DIR}{link}")
     print(f"  state     {state}")
-    print(f"  shortcut  {ctx.settings.get('toggle-shortcut')[0]}")
+    print(f"  shortcut  {_shortcut_text(ctx)}")
     print(f"  style     {ctx.settings.get('style') or 'built-in'}, theme {ctx.settings.get('theme-preference')}")
     print(f"  plugins   {len(enabled)} on: {', '.join(enabled)}")
 
@@ -210,7 +215,7 @@ def accent(ctx, args):
 @command("shortcut", "show or set the toggle shortcut, e.g. super+space", arguments=[("value", {"nargs": "?"})])
 def shortcut(ctx, args):
     if not args.value:
-        print(ctx.settings.get("toggle-shortcut")[0])
+        print(_shortcut_text(ctx))
         return
     accelerator = _accelerator(args.value)
     ctx.settings.set_variant("toggle-shortcut", f"[{quote(accelerator)}]")
@@ -244,7 +249,7 @@ def keyword(ctx, args):
         rows = []
         for manifest in sorted(ctx.plugins.all().values(), key=lambda m: m["id"]):
             prefix = ctx.plugins.keyword(manifest)
-            usage = f"{prefix} query" if prefix and is_word_keyword(prefix) else f"{prefix}query" if prefix else "automatic"
+            usage = example_text(prefix, "query") if prefix else "automatic"
             state = "" if ctx.plugins.is_enabled(manifest) else " (off)"
             rows.append((manifest["id"], prefix or "-", f"{usage}{state}"))
         table(rows)
@@ -344,9 +349,7 @@ def _plugin_config(ctx, args):
 def _plugin_new(ctx, args):
     target, manifest = ctx.plugins.create(_require_id(args), args.type, args.lang, os.environ.get("USER", ""))
     ok(f"created {target}")
-    print(f"  edit {target / manifest['main']}, then: qryg plugin reload")
-    if args.type == "js":
-        print(dim("  run `qryg plugin reload` after editing; no logout needed"))
+    print(f"  edit {target / manifest['main']}, then: qryg plugin reload (no logout needed)")
 
 
 def _plugin_install(ctx, args):
@@ -413,7 +416,8 @@ def _plugin_folder(ctx, target):
     if folder.name == "manifest.json":
         folder = folder.parent
     if folder.is_dir() and (os.sep in target or target.startswith(".") or (folder / "manifest.json").exists()):
-        return folder.resolve(), False
+        folder = folder.resolve()
+        return folder, folder.parent in PluginCatalog.bundled_dirs()
     manifest = ctx.plugins.get(target)
     return manifest["_dir"], manifest["_bundled"]
 
@@ -440,7 +444,7 @@ def _plugin_test(ctx, args):
         raise CliError(f"not loaded: {'; '.join(problems)}")
     query = " ".join(args.rest[1:]).strip()
     prefix = ctx.plugins.keyword(manifest) if manifest["id"] in ctx.plugins.all() else manifest["keyword"]
-    raw = f"{prefix}{' ' if is_word_keyword(prefix) else ''}{query}" if prefix else query
+    raw = example_text(prefix, query) if prefix else query
     catalog = ctx.plugins
     settings = resolve_settings(manifest, lambda definition: catalog.setting(manifest, definition))
     runner = run_js if manifest["type"] == "js" else run_script
@@ -520,9 +524,13 @@ def bookmark(ctx, args):
 @command("install", "install this checkout into GNOME Shell",
          arguments=[("--link", {"action": "store_true", "help": "symlink instead of copying, for development"})])
 def install_command(_ctx, args):
-    cli = install(link=args.link)
+    cli, migrated = install(link=args.link)
     ok(f"installed to {EXTENSION_DIR}" + (" (linked)" if args.link else ""))
     ok(f"cli linked at {cli}")
+    if migrated is True:
+        ok("copied your settings from QryG 1.1")
+    elif migrated is False:
+        warn("could not copy your settings from QryG 1.1; set them again with `qryg prefs`")
     print("  log out and back in to load it" + ("" if is_active(extension_state(UUID)) else ", then run: qryg enable"))
 
 
@@ -535,6 +543,9 @@ def update_command(_ctx, args):
             ok(f"{state['branch']} is up to date ({state['current']})")
             return
         print(f"  {state['branch']} is {state['behind']} commit{'s' if state['behind'] != 1 else ''} behind GitHub")
+    elif not state["latest"]:
+        warn("GitHub has no releases yet")
+        return
     elif not state["available"]:
         ok(f"QryG {state['current']} is the latest release")
         return
@@ -546,7 +557,8 @@ def update_command(_ctx, args):
     updater.apply(state)
     ok(f"updated to {state['target']}")
     # Install with the code just checked out, not the old code running now.
-    command = [str(REPO / "bin" / "qryg"), "install"] + (["--link"] if EXTENSION_DIR.is_symlink() else [])
+    command = [str(CLI_SCRIPT), "install"] + (["--link"] if EXTENSION_DIR.is_symlink() else [])
+    sys.stdout.flush()
     os.execv(command[0], command)
 
 

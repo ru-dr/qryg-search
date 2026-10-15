@@ -9,6 +9,9 @@ test('parses hex, rgb and hsl', () => {
     assert.equal(Color.parseColor('rgba(0, 0, 0, 0.5)').a, 0.5);
     assert.deepEqual(Color.parseColor('hsl(0, 100%, 50%)'), {r: 255, g: 0, b: 0, a: 1});
     assert.equal(Color.parseColor('tomato'), null);
+    assert.equal(Color.parseColor('#abcde'), null);
+    assert.ok(Color.HEX_DIGITS.test('ff375f'));
+    assert.ok(!Color.HEX_DIGITS.test('ff37'.repeat(3)));
 });
 
 test('converts between formats', () => {

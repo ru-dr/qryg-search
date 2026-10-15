@@ -4,6 +4,24 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+### Changed
+
+- Exact bookmark and file name matches rank higher, and open windows rank just below their app
+- Clipboard times read "5 minutes ago"
+- Currency results use the currency's own decimals, so yen has none, and `$50 to eur` or `€20` work
+- `toggle` and `gsetting` in a plugin manifest only apply to bundled plugins
+- Script plugins that exit with an error, or persistent ones that stop answering, now show the error in preferences, and a hung persistent plugin is restarted
+
+### Fixed
+
+- Installing a plugin from a folder or git repository refused links only in archives; links that lead outside the plugin folder are now refused for every source
+- `100 cal to J` gave the kilocalorie answer, `utc+0` showed nothing, and `session lo` needed a third letter
+- Generated passwords now use the system's secure random source
+- Unit queries like `5 gal to cup` no longer wait for currency rates
+- The launcher fades out with its results instead of an empty box
+- `qryg install` and `qryg uninstall` no longer delete a checkout cloned straight into the extensions folder, and an empty shortcut no longer crashes `qryg`
+- A user plugin with an invalid `toggle` no longer breaks Preferences → Plugins, which now refreshes after Reload
+
 ## 2.0.0 - 2026-10-15
 
 ### Added

@@ -9,12 +9,11 @@ import threading
 import time
 from pathlib import Path
 
-from .paths import CONFIG_HOME
+from .paths import APP_CACHE, APP_CONFIG
 from .ui import CliError
 
 MAX_OUTPUT = 512 * 1024
 MAX_RESULTS = 50
-CACHE_HOME = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
 HARNESS = Path(__file__).resolve().parent / "harness.js"
 HARNESS_MARKER = "QRYG_SEARCH_HARNESS "
 EFFECT_KEYS = ("copy", "open", "exec", "terminal", "notify")
@@ -50,8 +49,8 @@ def has_effects(value):
 
 
 def plugin_env(manifest):
-    cache = CACHE_HOME / "qryg-search" / "plugins" / manifest["id"]
-    config = CONFIG_HOME / "qryg-search" / "plugins" / manifest["id"]
+    cache = APP_CACHE / "plugins" / manifest["id"]
+    config = APP_CONFIG / "plugins" / manifest["id"]
     cache.mkdir(parents=True, exist_ok=True)
     config.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ)
@@ -95,6 +94,13 @@ class Run:
         self.stderr = ""
 
 
+def exit_error(returncode, stderr):
+    """Mirrors exitError() in lib/plugins/script.js."""
+    reason = f"exit {returncode}" if returncode > 0 else f"killed by signal {-returncode}"
+    lines = stderr.strip().splitlines()
+    return f"{reason}: {lines[-1]}" if lines else reason
+
+
 class OneShot:
     def __init__(self, manifest):
         self._manifest = manifest
@@ -109,7 +115,10 @@ class OneShot:
                                   cwd=self._manifest["dir"], env=plugin_env(self._manifest), timeout=timeout / 1000)
         except subprocess.TimeoutExpired as error:
             raise CliError(f"timed out after {timeout} ms") from error
-        self.stderr += proc.stderr.decode(errors="replace")
+        stderr = proc.stderr.decode(errors="replace")
+        self.stderr += stderr
+        if proc.returncode != 0:
+            raise CliError(exit_error(proc.returncode, stderr))
         if len(proc.stdout) > MAX_OUTPUT:
             raise CliError(f"output larger than {MAX_OUTPUT // 1024} KB")
         return decode(proc.stdout.decode(errors="replace"))
@@ -243,7 +252,10 @@ def run_js(manifest, query, settings, activate=None, raw=None):
     stderr = proc.stderr.decode(errors="replace")
     if reply is None:
         raise CliError(f"the test harness failed: {stderr.strip()[-400:] or 'no output'}")
-    data = json.loads(reply)
+    try:
+        data = json.loads(reply)
+    except ValueError as error:
+        raise CliError(f"the test harness sent something that is not JSON: {error}") from error
     if data.get("error"):
         raise CliError(data["error"])
     run = Run()

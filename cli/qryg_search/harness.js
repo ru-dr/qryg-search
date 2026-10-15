@@ -5,13 +5,15 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import System from 'system';
-import {fetchJson} from '../../lib/plugins/helpers.js';
+import {expandPath, tildify} from '../../lib/core/paths.js';
+import {fetchJson, readText} from '../../lib/plugins/helpers.js';
 import {match} from '../../lib/plugins/match.js';
+import {copyRow, warningRow} from '../../lib/plugins/rows.js';
+import {matchWords} from '../../lib/plugins/text.js';
 import {coerce} from '../../lib/plugins/values.js';
 
 const MARKER = 'QRYG_SEARCH_HARNESS ';
 const EFFECT_KEYS = ['copy', 'open', 'exec', 'terminal', 'notify'];
-const HOME = GLib.get_home_dir();
 const MAX_RESULTS = 50;
 
 function readInput() {
@@ -72,8 +74,8 @@ function createApi(manifest, values, calls, logs) {
         notify: (title, body = '') => record('notify', `${title} ${body}`.trim()),
         log: (...args) => logs.push(args.map(String).join(' ')),
         refresh: () => record('refresh', true),
-        expandPath: path => path.replace(/^~(?=\/|$)/, HOME),
-        tildify: path => path === HOME || path.startsWith(`${HOME}/`) ? `~${path.slice(HOME.length)}` : path,
+        expandPath,
+        tildify,
         timeout: (ms, fn) => {
             const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => fn() === true);
             return () => GLib.source_remove(id);
@@ -88,6 +90,10 @@ function createApi(manifest, values, calls, logs) {
         },
         fetchJson: (url, options = {}) => fetchJson(url, {...options, cacheDir: options.ttl > 0 ? dir('cache') : null}),
         match,
+        matchWords,
+        readText,
+        copyRow,
+        warningRow,
         services: {refresh: () => record('refresh', true), keyword: () => null, filter: () => null},
     };
 }

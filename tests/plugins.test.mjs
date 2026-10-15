@@ -6,6 +6,10 @@ import {URL} from 'node:url';
 import * as Emoji from '../plugins/emoji/search.js';
 import * as Session from '../plugins/session/actions.js';
 import * as Proc from '../plugins/processes/proc.js';
+import * as Currency from '../plugins/currency/parse.js';
+import * as Text from '../lib/plugins/text.js';
+import {copyRow, warningRow} from '../lib/plugins/rows.js';
+import {toUrl} from '../lib/plugins/url.js';
 
 const data = JSON.parse(readFileSync(new URL('../plugins/emoji/emoji.json', import.meta.url), 'utf8'));
 const entries = Emoji.index(data);
@@ -41,7 +45,7 @@ test('emoji skin tones and code points', () => {
 });
 
 test('session actions match whole words and prefixes only', () => {
-    const ids = query => Session.match(query).map(({action}) => action.id);
+    const ids = query => Session.matchActions(query).map(({action}) => action.id);
     assert.deepEqual(ids('lock'), ['lock']);
     assert.deepEqual(ids('sleep'), ['suspend']);
     assert.deepEqual(ids('reboot'), ['restart']);
@@ -53,15 +57,22 @@ test('session actions match whole words and prefixes only', () => {
     assert.deepEqual(ids('lo'), []);
     assert.deepEqual(ids('firefox'), []);
     assert.deepEqual(ids('clock'), []);
-    assert.equal(Session.match('lock')[0].score, 95);
-    assert.ok(Session.match('sus')[0].score < 80);
+    assert.equal(Session.matchActions('lock')[0].score, 95);
+    assert.ok(Session.matchActions('sus')[0].score < 80);
+});
+
+test('session actions match short words after the prefix', () => {
+    const ids = query => Session.matchActions(query, {}, true).map(({action}) => action.id);
+    assert.deepEqual(ids('lo').sort(), ['lock', 'logout']);
+    assert.deepEqual(ids('re'), ['restart']);
+    assert.deepEqual(ids(''), []);
 });
 
 test('session actions follow availability', () => {
-    assert.deepEqual(Session.match('suspend', {suspend: false}), []);
-    assert.equal(Session.match('hibernate').length, 0, 'hibernate needs a positive answer');
-    assert.equal(Session.match('hibernate', {hibernate: true}).length, 1);
-    assert.equal(Session.match('restart', {restart: true}).length, 1);
+    assert.deepEqual(Session.matchActions('suspend', {suspend: false}), []);
+    assert.equal(Session.matchActions('hibernate').length, 0, 'hibernate needs a positive answer');
+    assert.equal(Session.matchActions('hibernate', {hibernate: true}).length, 1);
+    assert.equal(Session.matchActions('restart', {restart: true}).length, 1);
 });
 
 const STATUS = `Name:\tfirefox
@@ -107,4 +118,40 @@ test('ranks processes by match, then memory', () => {
     assert.deepEqual(pids('12'), [12]);
     assert.deepEqual(pids(''), [11, 10, 12]);
     assert.deepEqual(pids('chrome'), []);
+});
+
+test('currency queries', () => {
+    const parse = Currency.parseQuery;
+    assert.deepEqual(parse('50 usd to inr'), {amount: '50', from: 'USD', to: 'INR'});
+    assert.deepEqual(parse('2*15 gbp in jpy'), {amount: '2*15', from: 'GBP', to: 'JPY'});
+    assert.deepEqual(parse('100 eur'), {amount: '100', from: 'EUR', to: null});
+    assert.deepEqual(parse('$50 to eur'), {amount: '50', from: 'USD', to: 'EUR'});
+    assert.deepEqual(parse('€20'), {amount: '20', from: 'EUR', to: null});
+    assert.deepEqual(parse('20€'), {amount: '20', from: 'EUR', to: null});
+    for (const text of ['5 gal to cup', '10 min', '10 km to mi', '3 sec', 'firefox', '50 usd to xyz'])
+        assert.equal(parse(text), null, text);
+    assert.equal(Currency.currencyDigits('JPY'), 0);
+    assert.equal(Currency.currencyDigits('EUR'), 2);
+});
+
+test('text helpers', () => {
+    assert.equal(Text.capitalize('length'), 'Length');
+    assert.equal(Text.capitalize(''), '');
+    assert.equal(Text.truncate('abcdef', 3), 'abc…');
+    assert.equal(Text.truncate('abc', 3), 'abc');
+    assert.equal(Text.matchWords(['Report Q3.pdf'], ''), 0);
+    assert.equal(Text.matchWords(['Report Q3.pdf'], 'pdf zip'), null);
+    assert.equal(Text.matchWords(['Café menu', 'Firefox'], 'cafe firefox') > 0, true);
+    assert.equal(Text.matchWords(['docs', '~/Documents'], 'docs'), 100);
+    assert.ok(Text.matchWords('q3 report.pdf', 'report pdf') >= 60);
+});
+
+test('common rows and URLs', () => {
+    assert.deepEqual(copyRow('42', 'Answer', 'icon'), {title: '42', subtitle: 'Answer', icon: 'icon', copy: '42', activate: {copy: '42'}});
+    assert.deepEqual(copyRow('4 ft', 'x', 'icon', {copy: '4', id: 'a'}).activate, {copy: '4'});
+    assert.equal(warningRow('Bad', 'why').icon, 'dialog-warning-symbolic');
+    assert.equal(toUrl('example.com/x'), 'https://example.com/x');
+    assert.equal(toUrl('localhost:8080'), 'http://localhost:8080');
+    assert.equal(toUrl('localhost.example.com'), 'https://localhost.example.com');
+    assert.equal(toUrl('HTTP://a.io'), 'HTTP://a.io');
 });

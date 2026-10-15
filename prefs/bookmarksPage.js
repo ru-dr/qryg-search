@@ -3,6 +3,7 @@ import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import * as Bookmarks from '../lib/core/bookmarks.js';
+import {page, group, escape} from './widgets.js';
 
 Gio._promisify(Gtk.FileDialog.prototype, 'open', 'open_finish');
 Gio._promisify(Gtk.FileDialog.prototype, 'select_folder', 'select_folder_finish');
@@ -16,15 +17,6 @@ const ICONS = {
 };
 
 export function buildBookmarksPage({window}) {
-    const page = new Adw.PreferencesPage({
-        title: 'Bookmarks',
-        icon_name: 'user-bookmarks-symbolic',
-    });
-
-    const addGroup = new Adw.PreferencesGroup({
-        title: 'Add bookmark',
-        description: 'A file, folder, sftp:// or smb:// location, website, or a command starting with >',
-    });
     const nameRow = new Adw.EntryRow({title: 'Name (optional)'});
     const targetRow = new Adw.EntryRow({title: 'Target', show_apply_button: true});
     const pick = async folder => {
@@ -45,13 +37,9 @@ export function buildBookmarksPage({window}) {
     const addButton = new Gtk.Button({label: 'Add', valign: Gtk.Align.CENTER, css_classes: ['suggested-action']});
     const addRow = new Adw.ActionRow({title: ''});
     addRow.add_suffix(addButton);
-    addGroup.add(nameRow);
-    addGroup.add(targetRow);
-    addGroup.add(addRow);
-    page.add(addGroup);
-
-    const listGroup = new Adw.PreferencesGroup({title: 'Saved'});
-    page.add(listGroup);
+    const addGroup = group('Add bookmark', [nameRow, targetRow, addRow],
+        'A file, folder, sftp:// or smb:// location, website, or a command starting with >');
+    const listGroup = group('Saved', []);
     let rows = [];
 
     const refresh = () => {
@@ -66,8 +54,8 @@ export function buildBookmarksPage({window}) {
             return;
         }
         for (const b of list) {
-            const kind = b.type ?? Bookmarks.kindOf(b.target);
-            const row = new Adw.ActionRow({title: b.name, subtitle: b.target, subtitle_lines: 1, use_markup: false});
+            const kind = b.type ?? Bookmarks.bookmarkKind(b.target);
+            const row = new Adw.ActionRow({title: escape(b.name), subtitle: escape(b.target), subtitle_lines: 1});
             row.add_prefix(new Gtk.Image({icon_name: ICONS[kind] ?? 'user-bookmarks-symbolic'}));
             const del = new Gtk.Button({icon_name: 'user-trash-symbolic', tooltip_text: 'Remove', valign: Gtk.Align.CENTER, css_classes: ['flat']});
             del.connect('clicked', () => {
@@ -97,5 +85,5 @@ export function buildBookmarksPage({window}) {
     nameRow.connect('entry-activated', () => targetRow.grab_focus());
 
     refresh();
-    return page;
+    return page('Bookmarks', 'user-bookmarks-symbolic', [addGroup, listGroup]);
 }
