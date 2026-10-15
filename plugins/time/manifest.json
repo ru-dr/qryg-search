@@ -1,7 +1,7 @@
 {
   "id": "time",
   "name": "Time",
-  "description": "The current time in several formats, and Unix timestamps as dates.",
+  "description": "The current time in several formats, world clocks like \"time tokyo\" or \"utc+2\", and Unix timestamps as dates.",
   "version": "1.0.0",
   "author": "QryG Search",
   "api": 1,
@@ -11,5 +11,14 @@
   "priority": 50,
   "category": "actions",
   "icon": "x-office-calendar-symbolic",
-  "completion": false
+  "completion": false,
+  "settings": [
+    {
+      "key": "clocks",
+      "type": "strings",
+      "default": [],
+      "title": "World clocks",
+      "description": "Places or zones shown with \"time\", like Tokyo, Europe/Berlin or UTC+5:30"
+    }
+  ]
 }
