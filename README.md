@@ -141,10 +141,16 @@ A plugin is a folder with a `manifest.json` and either a JavaScript module or an
 qryg-search plugin new weather                          # JavaScript
 qryg-search plugin new todo --type script --lang python # or Python, or --lang bash
 qryg-search plugin install https://github.com/you/qryg-search-plugin-x
+qryg-search plugin install https://github.com/you/plugins/tree/main/weather   # or a .zip, or a manifest.json URL
 qryg-search plugin reload
 qryg-search plugin validate weather                     # check the manifest
 qryg-search plugin test weather paris                   # run one query outside GNOME Shell
 ```
+
+Preferences → Plugins → *Install a plugin* takes the same links. Both show what a plugin is and where it comes from before installing it.
+
+> [!WARNING]
+> Plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first.
 
 A complete JavaScript plugin:
 

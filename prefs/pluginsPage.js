@@ -6,6 +6,7 @@ import Gtk from 'gi://Gtk';
 import {scan, providerId, isValidKeyword, USER_PLUGIN_DIR} from '../lib/plugins/manifest.js';
 import {PluginSettings} from '../lib/plugins/settings.js';
 import {page, group, buttonRow, escape} from './widgets.js';
+import {installGroup} from './installRow.js';
 
 function readKeywords(settings) {
     try {
@@ -144,19 +145,14 @@ function openUserFolder() {
     Gio.AppInfo.launch_default_for_uri(GLib.filename_to_uri(USER_PLUGIN_DIR, null), null);
 }
 
-export function buildPluginsPage({settings, path}) {
+function pluginGroups(settings, path) {
     const scanned = scan(GLib.build_filenamev([path, 'plugins']));
     const status = readStatus(settings);
     const failed = scanned.plugins.filter(m => status[m.id]?.problems);
     const plugins = scanned.plugins.filter(m => !failed.includes(m));
     const broken = [...scanned.broken, ...failed.map(m => ({dir: m.dir, id: m.id, problems: status[m.id].problems}))];
     const byName = (a, b) => a.name.localeCompare(b.name);
-    const groups = [group('Plugins', [
-        buttonRow('Your plugins folder', USER_PLUGIN_DIR, [
-            {label: 'Open', onClicked: openUserFolder},
-            {label: 'Reload', onClicked: () => settings.set_int('plugins-reload', settings.get_int('plugins-reload') + 1)},
-        ]),
-    ], 'Turn plugins on or off, change their prefix and settings. Create one with `qryg-search plugin new`.')];
+    const groups = [];
     for (const [title, list] of [['Bundled', plugins.filter(p => p.bundled)], ['Installed', plugins.filter(p => !p.bundled)]]) {
         if (list.length > 0)
             groups.push(group(title, list.sort(byName).map(m => pluginRow(settings, m, status[m.id]))));
@@ -167,5 +163,24 @@ export function buildPluginsPage({settings, path}) {
             subtitle: escape(b.problems.join('; ')),
         })), 'Fix these plugins, then press Reload'));
     }
-    return page('Plugins', 'application-x-addon-symbolic', groups);
+    return groups;
+}
+
+export function buildPluginsPage(context) {
+    const {settings, path} = context;
+    let shown = [];
+    const refresh = () => {
+        shown.forEach(g => result.remove(g));
+        shown = pluginGroups(settings, path);
+        shown.forEach(g => result.add(g));
+    };
+    const result = page('Plugins', 'application-x-addon-symbolic', [group('Plugins', [
+        buttonRow('Your plugins folder', USER_PLUGIN_DIR, [
+            {label: 'Open', onClicked: openUserFolder},
+            {label: 'Reload', onClicked: () => settings.set_int('plugins-reload', settings.get_int('plugins-reload') + 1)},
+        ]),
+    ], 'Turn plugins on or off, change their prefix and settings. Create one with `qryg-search plugin new`.'),
+    installGroup(context, refresh)]);
+    refresh();
+    return result;
 }

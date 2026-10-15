@@ -14,7 +14,7 @@ def build_parser():
     for spec in COMMANDS:
         sub = subcommands.add_parser(spec["name"], help=spec["help"], aliases=spec["aliases"])
         for name, options in spec["arguments"]:
-            sub.add_argument(name, **options)
+            sub.add_argument(*(name if isinstance(name, tuple) else (name,)), **options)
         sub.set_defaults(run=spec["run"])
     return parser
 

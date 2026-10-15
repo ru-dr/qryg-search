@@ -1,0 +1,68 @@
+{
+  "warning": {
+    "source": "https://example.com/weather.zip",
+    "expect": "Warning: plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first: https://example.com/weather.zip"
+  },
+  "classify": [
+    {"source": "./examples/plugins/hello", "expect": {"kind": "folder", "source": "./examples/plugins/hello"}},
+    {"source": "~/code/weather", "expect": {"kind": "folder"}},
+    {"source": "/home/you/weather.zip", "expect": {"kind": "archive", "source": "/home/you/weather.zip"}},
+    {"source": "https://github.com/you/qryg-search-weather", "expect": {"kind": "git", "repo": "https://github.com/you/qryg-search-weather", "ref": null, "subdir": ""}},
+    {"source": "https://github.com/you/weather.git", "expect": {"kind": "git", "repo": "https://github.com/you/weather.git"}},
+    {"source": "git@github.com:you/weather.git", "expect": {"kind": "git", "repo": "git@github.com:you/weather.git"}},
+    {"source": "ssh://git@example.com/you/weather", "expect": {"kind": "git"}},
+    {"source": "file:///srv/git/weather", "expect": {"kind": "git", "repo": "file:///srv/git/weather"}},
+    {"source": "https://github.com/you/repo/tree/main/plugins/weather", "expect": {"kind": "subdir", "repo": "https://github.com/you/repo", "ref": "main", "subdir": "plugins/weather"}},
+    {"source": "https://github.com/you/repo/tree/main/plugins/weather/", "expect": {"kind": "subdir", "ref": "main", "subdir": "plugins/weather"}},
+    {"source": "https://github.com/you/repo/blob/v1.2/plugins/weather/manifest.json", "expect": {"kind": "subdir", "repo": "https://github.com/you/repo", "ref": "v1.2", "subdir": "plugins/weather"}},
+    {"source": "https://github.com/you/repo/blob/main/weather/plugin.js", "expect": {"kind": "subdir", "ref": "main", "subdir": "weather"}},
+    {"source": "https://github.com/you/repo/tree/main", "expect": {"kind": "subdir", "repo": "https://github.com/you/repo", "ref": "main", "subdir": ""}},
+    {"source": "https://github.com/tree/repo/tree/dev/x", "expect": {"kind": "subdir", "repo": "https://github.com/tree/repo", "ref": "dev", "subdir": "x"}},
+    {"source": "https://gitlab.com/group/sub/repo/-/tree/main/weather", "expect": {"kind": "subdir", "repo": "https://gitlab.com/group/sub/repo", "ref": "main", "subdir": "weather"}},
+    {"source": "https://codeberg.org/you/repo/src/branch/main/weather", "expect": {"kind": "subdir", "repo": "https://codeberg.org/you/repo", "ref": "main", "subdir": "weather"}},
+    {"source": "file:///srv/git/repo/tree/HEAD/plugins/a", "expect": {"kind": "subdir", "repo": "file:///srv/git/repo", "ref": "HEAD", "subdir": "plugins/a"}},
+    {"source": "https://github.com/you/repo/archive/refs/heads/main.zip", "expect": {"kind": "archive"}},
+    {"source": "https://example.com/weather.tar.gz?download=1", "expect": {"kind": "archive"}},
+    {"source": "https://example.com/weather.tgz", "expect": {"kind": "archive"}},
+    {"source": "https://example.com/Weather.TAR.XZ", "expect": {"kind": "archive"}},
+    {"source": "https://raw.githubusercontent.com/you/repo/main/weather/manifest.json", "expect": {"kind": "manifest"}},
+    {"source": "https://codeberg.org/you/repo/raw/branch/main/weather/manifest.json", "expect": {"kind": "manifest"}},
+    {"source": "ftp://example.com/weather", "error": true},
+    {"source": "https://github.com/you/repo/tree/main/../../etc", "error": true},
+    {"source": "", "error": true}
+  ],
+  "files": [
+    {"manifest": {"main": "plugin.js"}, "expect": ["plugin.js"]},
+    {"manifest": {"main": "./plugin.py", "files": ["lib/util.py", "data/a b.json", "plugin.py", "manifest.json"]}, "expect": ["plugin.py", "lib/util.py", "data/a b.json"]},
+    {"manifest": {"command": ["node", "plugin.mjs"], "files": ["plugin.mjs"]}, "expect": ["plugin.mjs"]},
+    {"manifest": {"main": "../plugin.js"}, "error": true},
+    {"manifest": {"main": "plugin.js", "files": ["/etc/passwd"]}, "error": true},
+    {"manifest": {"main": "plugin.js", "files": ["lib/../../x"]}, "error": true},
+    {"manifest": {"main": "plugin.js", "files": "lib/util.js"}, "error": true}
+  ],
+  "urls": [
+    {"base": "https://example.com/you/repo/main/weather/manifest.json", "path": "plugin.js", "expect": "https://example.com/you/repo/main/weather/plugin.js"},
+    {"base": "https://example.com/you/repo/main/weather/manifest.json", "path": "data/a b.json", "expect": "https://example.com/you/repo/main/weather/data/a%20b.json"}
+  ],
+  "subfolders": [
+    {"source": "https://github.com/you/repo", "path": "plugins/a", "expect": "https://github.com/you/repo/tree/HEAD/plugins/a"},
+    {"source": "https://github.com/you/repo.git", "path": "a", "expect": "https://github.com/you/repo/tree/HEAD/a"},
+    {"source": "https://gitlab.com/group/repo", "path": "a", "expect": "https://gitlab.com/group/repo/-/tree/HEAD/a"},
+    {"source": "https://codeberg.org/you/repo", "path": "a", "expect": "https://codeberg.org/you/repo/src/branch/HEAD/a"},
+    {"source": "file:///srv/git/repo", "path": "a", "expect": "file:///srv/git/repo/tree/HEAD/a"},
+    {"source": "git@github.com:you/repo.git", "path": "a", "expect": null}
+  ],
+  "manifests": [
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js"}, "files": {"plugin.js": false}, "ok": true},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js"}, "files": {}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "main": "plugin.py"}, "files": {"plugin.py": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "main": "plugin.py"}, "files": {"plugin.py": true}, "ok": true},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "script", "command": ["python3", "plugin.py"]}, "files": {}, "ok": true},
+    {"manifest": {"id": "Hello!", "name": "Hello", "type": "js", "main": "plugin.js"}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "type": "js", "main": "plugin.js"}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "python", "main": "plugin.py"}, "files": {"plugin.py": true}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "api": 99}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": {"id": "hello", "name": "Hello", "type": "js", "main": "plugin.js", "files": ["../x"]}, "files": {"plugin.js": false}, "ok": false},
+    {"manifest": ["not", "an", "object"], "files": {}, "ok": false}
+  ]
+}

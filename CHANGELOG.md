@@ -19,6 +19,11 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 - Plugin API: `api.timeout`, `api.idle` and `api.connect`, removed automatically when the plugin is destroyed
 - Plugin API: `api.fetchJson` with a shared HTTP session and an optional disk cache, and `api.match` for fuzzy match scores
 - Persistent script plugins: a `startupTimeout` manifest field, a `{"method": "ready"}` message, and `{"method": "error"}` messages shown in preferences
+- `qryg-search plugin install` takes a repository folder URL (`…/tree/main/plugins/name`), a `.zip`, `.tar.gz`, `.tgz` or `.tar.xz` URL, or a `manifest.json` URL, besides a folder or git repository
+- Preferences → Plugins → *Install a plugin*, with the same sources
+- A summary of the plugin and its source, and a warning to review its code, before installing, with an `Install? [y/N]` question; `--yes` skips it
+- An optional `files` manifest key: the files to fetch when installing from a `manifest.json` URL
+- `qryg-search plugin update` works for every kind of source
 
 ### Changed
 
@@ -31,6 +36,8 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ### Fixed
 
+- Installing a plugin from its own installed folder no longer deletes it
+- A failed install or update keeps the plugin that was there before
 - `Enter` copies a result's `copy` (or `path`) when the plugin's `activate` returns no effects, as documented; script plugins always skipped it
 - The shell plugin's background command runs in the home folder, as its preview says, not in the plugin folder
 - `int` plugin settings outside `min` and `max` fall back to the default, and `qryg-search plugin config` refuses them

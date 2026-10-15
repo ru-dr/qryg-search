@@ -1,0 +1,13 @@
+{
+  "id": "greet",
+  "name": "Greet",
+  "description": "A test plugin for the installer.",
+  "version": "1.0.0",
+  "author": "QryG Search",
+  "api": 1,
+  "type": "script",
+  "main": "plugin.py",
+  "files": ["lib/greeting.py"],
+  "keyword": "greet",
+  "global": false
+}

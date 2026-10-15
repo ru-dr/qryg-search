@@ -99,6 +99,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `icon` | no | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
 | `description`, `version`, `author` | no | — | Shown in preferences and `qryg-search plugin info`. |
 | `settings` | no | `[]` | User settings. See [Settings](#settings). |
+| `files` | no | `[]` | Other files the plugin needs, as paths relative to the manifest, such as `["lib/api.js", "icons/logo.svg"]`. Only used when someone installs from a `manifest.json` URL. See [Sharing a plugin](#sharing-a-plugin). |
 
 \* For `script` plugins, use either `main` or `command`.
 
@@ -520,20 +521,43 @@ qryg-search plugin reload                        # reload every plugin
 
 ## Sharing a plugin
 
-Put the plugin folder at the root of a git repository. Anyone can then install it:
+> [!WARNING]
+> Plugins run code on your computer. A JavaScript plugin runs inside GNOME Shell with full access to your session; a script plugin runs as your user. Only install plugins from sources you trust, and read the code first.
+
+Publish the plugin folder anywhere QryG can fetch it from. `qryg-search plugin install` works out what a source is from its shape:
+
+| Source | Example | What QryG does |
+|---|---|---|
+| A local folder | `./weather` | Copies it. Add `--link` to symlink it instead, for development. |
+| A git repository | `https://github.com/you/qryg-search-weather`, `git@github.com:you/weather.git`, `ssh://…` | Shallow clone of the default branch. |
+| A folder in a repository | `https://github.com/you/plugins/tree/main/weather` | Fetches only that folder at that branch, tag or commit. GitHub and Codeberg `…/tree/…`, `…/blob/…/manifest.json` and `…/src/branch/…` links work, and so do GitLab `…/-/tree/…` links. |
+| An archive | `https://example.com/weather-1.2.zip`, `.tar.gz`, `.tgz`, `.tar.xz` | Downloads and unpacks it. The plugin can be at the top or in a single top-level folder, as in GitHub's release archives. |
+| A `manifest.json` URL | `https://raw.githubusercontent.com/you/plugins/main/weather/manifest.json` | Downloads the manifest, then `main` and every path in `files`, from next to it. A script `main` is made executable. |
 
 ```bash
 qryg-search plugin install https://github.com/you/qryg-search-weather
+qryg-search plugin install https://github.com/you/plugins/tree/main/weather
 qryg-search plugin install ./my-local-folder --link    # symlink, for development
-qryg-search plugin update                              # update every plugin installed from git or a folder
+qryg-search plugin update                              # update every plugin that has a recorded source
 qryg-search plugin update weather
 qryg-search plugin remove weather
 ```
+
+If a repository has no `manifest.json` at its root, QryG looks one level down and in `plugins/`. One plugin there is installed. If there are several, QryG lists them and asks for the URL of one folder.
+
+Before anything is written, QryG checks the manifest (`id`, `name`, `type`, `main`, and `api` no newer than QryG's) and shows what it is about to install: the name, id, version, author, what the plugin type can do, where it comes from, the folder it goes to, and the plugin it replaces, followed by the warning above with the source to review. It then asks `Install? [y/N]`. Pass `--yes` (`-y`) to skip the question; without a terminal, such as in a script, `--yes` is required. The new copy is built beside the old one and swapped in, so a failed install leaves the old plugin as it was.
+
+Archives are checked before they are unpacked: no absolute paths, no `..`, no links pointing outside the plugin, and at most 50 MB. Downloads time out after 30 seconds.
+
+The source is recorded in `.qryg-search-source.json` inside the installed folder, as `{"source": "…", "kind": "git" | "subdir" | "archive" | "manifest" | "folder", "ref": "main" | null}`, which is what `qryg-search plugin update` fetches again.
+
+In the preferences window, **Plugins → Install a plugin** takes the same sources. It shows the same summary before installing, then reloads plugins. It needs `git` for repositories, `tar` for `.tar.*` archives and `unzip` for `.zip` archives.
 
 Before publishing, check the following:
 
 - `id` is unique and `api` is `1`
 - `version` goes up with every release, so `qryg-search plugin update` can report it
+- if you share a `manifest.json` link, `files` lists every file besides `main`
 - `global` is `false`, unless the plugin is fast and rarely noisy
 - network calls are cached and cancellable
 - there are no secrets in the repository; use a setting for API keys
