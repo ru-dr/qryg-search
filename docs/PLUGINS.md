@@ -1,6 +1,6 @@
-# Writing yags plugins
+# Writing QryG Search plugins
 
-Every feature in yags beyond GNOME's own apps and search providers is a plugin, including the calculator, shell, files and web search. Your plugins get the same API.
+Every feature in QryG beyond GNOME's own apps and search providers is a plugin, including the calculator, shell, files and web search. Your plugins get the same API.
 
 This guide covers **Plugin API v1**.
 
@@ -24,14 +24,14 @@ This guide covers **Plugin API v1**.
 ## Quick start
 
 ```bash
-yags plugin new weather                            # JavaScript
-yags plugin new notes --type script --lang python  # Python
-yags plugin new todo --type script --lang bash     # Bash
+qryg-search plugin new weather                            # JavaScript
+qryg-search plugin new notes --type script --lang python  # Python
+qryg-search plugin new todo --type script --lang bash     # Bash
 ```
 
-This creates `~/.local/share/yags/plugins/<id>/` with a manifest and a working starting file, then reloads plugins. Open yags and type the prefix (by default the first word of the id, for example `weather hi`).
+This creates `~/.local/share/qryg-search/plugins/<id>/` with a manifest and a working starting file, then reloads plugins. Open QryG and type the prefix (by default the first word of the id, for example `weather hi`).
 
-After editing, run `yags plugin reload` or press **Reload** in Preferences → Plugins. You don't need to log out, even for JavaScript.
+After editing, run `qryg-search plugin reload` or press **Reload** in Preferences → Plugins. You don't need to log out, even for JavaScript.
 
 The finished examples in [`examples/plugins`](../examples/plugins) are a good place to start:
 
@@ -41,14 +41,14 @@ The finished examples in [`examples/plugins`](../examples/plugins) are a good pl
 | `emoji` | Python script | The script protocol, a choice setting, preview details |
 | `fd-files` | Python script | Another file search backend, using `fd` and falling back to `find`. Change its id to `files` to replace the bundled one. |
 
-Install one with `yags plugin install examples/plugins/emoji`.
+Install one with `qryg-search plugin install examples/plugins/emoji`.
 
 ## How a plugin runs
 
-1. At startup, and on every reload, yags scans the bundled `plugins/` folder and `~/.local/share/yags/plugins/`. A user plugin with the same `id` as a bundled one replaces it.
+1. At startup, and on every reload, QryG scans the bundled `plugins/` folder and `~/.local/share/qryg-search/plugins/`. A user plugin with the same `id` as a bundled one replaces it.
 2. Each folder needs a `manifest.json`. An invalid manifest is skipped and listed under *Not loaded* in Preferences → Plugins, with the reason.
-3. For every keystroke, yags asks each enabled plugin for results through `query`. Slow or stale queries are cancelled.
-4. When the user presses `Enter` or clicks a row button, yags runs the result's effect or calls your `activate`.
+3. For every keystroke, QryG asks each enabled plugin for results through `query`. Slow or stale queries are cancelled.
+4. When the user presses `Enter` or clicks a row button, QryG runs the result's effect or calls your `activate`.
 
 A plugin is shown in normal results when `global` is true. It is always shown when the user types its prefix, and when the filter matching its `category` is active.
 
@@ -84,7 +84,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `type` | yes | — | `"js"` or `"script"`. |
 | `main` | yes* | — | `js`: the module, ending in `.js`. `script`: an executable file in the folder (`chmod +x`). |
 | `command` | no | — | `script` only: an argv array used instead of `main`, such as `["node", "plugin.mjs"]`. |
-| `api` | no | `1` | The plugin API version it was written for. yags refuses plugins that need a newer API. |
+| `api` | no | `1` | The plugin API version it was written for. QryG refuses plugins that need a newer API. |
 | `keyword` | no | none | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
 | `global` | no | `true` | Show results without the prefix. Set this to `false` for anything noisy or slow. |
 | `position` | no | `"bottom"` | `"top"` (above apps), `"after-apps"`, or `"bottom"` (after GNOME's providers). |
@@ -95,7 +95,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `timeout` | no | `1500` | `script` only: the time limit in milliseconds for each request, from 100 to 10000. |
 | `persistent` | no | `false` | `script` only: keep one process running instead of starting one per request. See [Long-running script plugins](#long-running-script-plugins). |
 | `icon` | no | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
-| `description`, `version`, `author` | no | — | Shown in preferences and `yags plugin info`. |
+| `description`, `version`, `author` | no | — | Shown in preferences and `qryg-search plugin info`. |
 | `settings` | no | `[]` | User settings. See [Settings](#settings). |
 
 \* For `script` plugins, use either `main` or `command`.
@@ -157,12 +157,12 @@ export default class Weather {
 | `api.id`, `api.name`, `api.dir` | The plugin id, name and folder. |
 | `api.settings.get(key)`, `.set(key, value)`, `.all()` | Read and write this plugin's [settings](#settings). |
 | `api.settings.onChanged(callback)` | Watch settings. Returns a function that stops watching, which you can call in `destroy()`. |
-| `api.cacheDir`, `api.configDir` | `~/.cache/yags/plugins/<id>` and `~/.config/yags/plugins/<id>`, created on first use. |
+| `api.cacheDir`, `api.configDir` | `~/.cache/qryg-search/plugins/<id>` and `~/.config/qryg-search/plugins/<id>`, created on first use. |
 | `api.copy(text)` | Copy to the clipboard. |
 | `api.open(target)` | Open a path or URI with its default app. |
 | `api.spawn(argv, cwd)` | Run a program in the background. |
 | `api.terminal(command)` | Run a shell command in the user's terminal. |
-| `api.findTerminal()` | The terminal yags would use. |
+| `api.findTerminal()` | The terminal QryG would use. |
 | `api.notify(title, body)` | Show a notification. |
 | `api.log(...args)` | Write to the journal, tagged with your id and rate limited. |
 | `api.refresh()` | Search again with the current text, for example when data arrives in the background. |
@@ -172,7 +172,7 @@ Keep `query` quick, because it runs in the GNOME Shell process. Do I/O asynchron
 
 ## Script plugins
 
-A script plugin can be written in any language. yags runs it once per request:
+A script plugin can be written in any language. QryG runs it once per request:
 
 ```
 <main or command> <method>
@@ -200,10 +200,10 @@ The environment:
 
 | Variable | Value |
 |---|---|
-| `YAGS_PLUGIN_ID` | The plugin id |
-| `YAGS_PLUGIN_DIR` | The plugin folder (also the working directory) |
-| `YAGS_CACHE_DIR` | `~/.cache/yags/plugins/<id>` |
-| `YAGS_CONFIG_DIR` | `~/.config/yags/plugins/<id>` |
+| `QRYG_SEARCH_PLUGIN_ID` | The plugin id |
+| `QRYG_SEARCH_PLUGIN_DIR` | The plugin folder (also the working directory) |
+| `QRYG_SEARCH_CACHE_DIR` | `~/.cache/qryg-search/plugins/<id>` |
+| `QRYG_SEARCH_CONFIG_DIR` | `~/.config/qryg-search/plugins/<id>` |
 
 The limits:
 
@@ -228,7 +228,7 @@ esac
 
 ## Long-running script plugins
 
-Starting a process on every keystroke is fine for small scripts. It is slow for anything that loads a big library or an index. Set `"persistent": true` and yags starts the process once, the first time it is needed, and keeps it running:
+Starting a process on every keystroke is fine for small scripts. It is slow for anything that loads a big library or an index. Set `"persistent": true` and QryG starts the process once, the first time it is needed, and keeps it running:
 
 ```
 <main or command> serve
@@ -242,11 +242,11 @@ Each request is one line of JSON on stdin with an `id`. Each reply is one line o
 ```
 
 - Flush stdout after every line. In Python, use `print(..., flush=True)`.
-- Replies can arrive in any order. yags matches them by `id`, and ignores replies to queries the user has already typed past.
+- Replies can arrive in any order. QryG matches them by `id`, and ignores replies to queries the user has already typed past.
 - Your process can send lines of its own at any time:
-  - `{"method": "refresh"}` makes yags search again, for example when background data arrives
+  - `{"method": "refresh"}` makes QryG search again, for example when background data arrives
   - `{"method": "log", "message": "…"}` writes to the journal
-- If the process exits, yags restarts it on the next request. After three crashes within a minute it stops trying until plugins are reloaded.
+- If the process exits, QryG restarts it on the next request. After three crashes within a minute it stops trying until plugins are reloaded.
 - The process is stopped on reload, when the plugin is disabled, and at logout.
 
 ```python
@@ -256,7 +256,7 @@ for line in sys.stdin:
     print(json.dumps({"id": request["id"], **reply}), flush=True)
 ```
 
-The `emoji` example and `yags plugin new --type script` support both modes, so you can switch with one manifest field.
+The `emoji` example and `qryg-search plugin new --type script` support both modes, so you can switch with one manifest field.
 
 ## Results
 
@@ -296,7 +296,7 @@ Only `title` is required. JavaScript results can also use functions where noted,
 | `kind` | The small line under the title in the preview. Defaults to the plugin name. |
 | `score` | How good a match this is, from 0 to 100. See [Ranking](#ranking). |
 
-Up to 50 results are kept per query. Results with a `score` are sorted by it, highest first. yags shows the first few, depending on `max-rows`.
+Up to 50 results are kept per query. Results with a `score` are sorted by it, highest first. QryG shows the first few, depending on `max-rows`.
 
 `Enter` runs the first of these that exists:
 
@@ -359,7 +359,7 @@ actions: [
 ]
 ```
 
-When an action is clicked, yags runs the first of these that exists:
+When an action is clicked, QryG runs the first of these that exists:
 
 1. the action's `run()` function (JavaScript only)
 2. its own [effects](#effects)
@@ -428,8 +428,8 @@ Settings declared in the manifest appear under the plugin in Preferences → Plu
 Values are stored for you, and invalid values fall back to `default`. Read them with `api.settings.get(key)` in JavaScript, or from `settings` in each script request.
 
 ```bash
-yags plugin config weather              # show settings
-yags plugin config weather city Berlin  # change one
+qryg-search plugin config weather              # show settings
+qryg-search plugin config weather city Berlin  # change one
 ```
 
 ## Prefixes
@@ -437,28 +437,28 @@ yags plugin config weather city Berlin  # change one
 The `keyword` in the manifest is only a default. Users can change it, or remove it, without touching your plugin:
 
 ```bash
-yags keyword weather w
-yags keyword weather none
-yags keyword weather default
+qryg-search keyword weather w
+qryg-search keyword weather none
+qryg-search keyword weather default
 ```
 
 - A prefix that starts with a letter or digit, such as `wx`, needs a space after it: `wx paris`.
 - A symbol prefix, such as `~`, works without one: `~paris`.
 - When prefixes overlap, the longest one wins.
-- `yags doctor` reports prefixes used by two plugins.
+- `qryg-search doctor` reports prefixes used by two plugins.
 
 Pick a short word over a symbol. Single symbols are scarce, and the bundled plugins already use `= > ? *`.
 
 ## Debugging
 
 ```bash
-journalctl --user -f -o cat | grep yags   # api.log output, load errors, query errors
-yags plugin list                          # state, prefix and folder of every plugin
-yags plugin info weather                  # prefix, state, folder and settings
-yags plugin reload
+journalctl --user -f -o cat | grep qryg-search   # api.log output, load errors, query errors
+qryg-search plugin list                          # state, prefix and folder of every plugin
+qryg-search plugin info weather                  # prefix, state, folder and settings
+qryg-search plugin reload
 ```
 
-- A script plugin can be tested without yags: `echo '{"query":"paris"}' | ./plugin.py query`.
+- A script plugin can be tested without QryG: `echo '{"query":"paris"}' | ./plugin.py query`.
 - A reload loads a fresh copy of your `main` module. Helper modules it imports stay cached until the next login, so during development keep code you change often in `main`.
 - A syntax error in `plugin.js` shows up under *Not loaded* in preferences.
 
@@ -467,20 +467,20 @@ yags plugin reload
 Put the plugin folder at the root of a git repository. Anyone can then install it:
 
 ```bash
-yags plugin install https://github.com/you/yags-weather
-yags plugin install ./my-local-folder --link    # symlink, for development
-yags plugin update                              # update every plugin installed from git or a folder
-yags plugin update weather
-yags plugin remove weather
+qryg-search plugin install https://github.com/you/qryg-search-weather
+qryg-search plugin install ./my-local-folder --link    # symlink, for development
+qryg-search plugin update                              # update every plugin installed from git or a folder
+qryg-search plugin update weather
+qryg-search plugin remove weather
 ```
 
 Before publishing, check the following:
 
 - `id` is unique and `api` is `1`
-- `version` goes up with every release, so `yags plugin update` can report it
+- `version` goes up with every release, so `qryg-search plugin update` can report it
 - `global` is `false`, unless the plugin is fast and rarely noisy
 - network calls are cached and cancellable
 - there are no secrets in the repository; use a setting for API keys
-- it has a licence, ideally GPL-3.0-or-later like yags
+- it has a licence, ideally GPL-3.0-or-later like QryG
 
-Open an issue on [ru-dr/yags](https://github.com/ru-dr/yags/issues) to have your plugin listed.
+Open an issue on [ru-dr/qryg-search](https://github.com/ru-dr/qryg-search/issues) to have your plugin listed.

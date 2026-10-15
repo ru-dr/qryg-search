@@ -3,7 +3,7 @@
   "name": "Files",
   "description": "Fast file search with the plocate index, recently used files and a live view of your home folders.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

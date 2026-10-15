@@ -5,8 +5,8 @@ Thanks for helping. Bugs, ideas, plugins, styles and pull requests are all welco
 ## Set up
 
 ```bash
-git clone https://github.com/ru-dr/yags.git
-cd yags
+git clone https://github.com/ru-dr/qryg-search.git
+cd qryg-search
 npm install          # ESLint
 make link            # install as a symlink to this checkout
 ```
@@ -33,7 +33,7 @@ make check           # syntax, schema, lint, JavaScript and Python tests
 
 ## Releases
 
-yags uses [semantic versioning](https://semver.org):
+QryG uses [semantic versioning](https://semver.org):
 
 | Change | Version |
 |---|---|
@@ -53,5 +53,5 @@ To release:
    git push origin v1.1.0
    ```
 
-4. The release workflow checks that the tag matches the version, runs `make check`, builds `yags@ru-dr.shell-extension.zip`, and publishes a GitHub release with the changelog notes. Tags with a suffix, such as `v1.1.0-beta.1`, become pre-releases.
+4. The release workflow checks that the tag matches the version, runs `make check`, builds `qryg-search@ru-dr.shell-extension.zip`, and publishes a GitHub release with the changelog notes. Tags with a suffix, such as `v1.1.0-beta.1`, become pre-releases.
 5. Upload the zip to [extensions.gnome.org](https://extensions.gnome.org/upload/) if the release should reach users there.

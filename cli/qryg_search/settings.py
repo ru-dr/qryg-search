@@ -45,7 +45,7 @@ class Settings:
         for folder in candidates:
             if folder.exists() and run("glib-compile-schemas", str(folder)) and (folder / "gschemas.compiled").exists():
                 return folder
-        raise CliError("schema not found, run `yags install` first")
+        raise CliError("schema not found, run `qryg-search install` first")
 
     @cached_property
     def keys(self):
@@ -71,7 +71,7 @@ class Settings:
 
     def require(self, key):
         if key not in self.keys:
-            raise CliError(f"unknown setting {key}, see `yags list`")
+            raise CliError(f"unknown setting {key}, see `qryg-search list`")
         return self.keys[key]
 
     def get(self, key):

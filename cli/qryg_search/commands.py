@@ -46,13 +46,13 @@ def _accelerator(text):
 
 @command("status", "show install state and key settings")
 def status(ctx, _args):
-    print(bold(f"yags {VERSION}") + "  Yet Another GNOME Search")
+    print(bold(f"QryG Search {VERSION}"))
     state = extension_state(UUID)
     if state is None:
         if (EXTENSION_DIR / "metadata.json").exists():
-            warn("installed, GNOME loads it at next login: log out and back in, then `yags enable`")
+            warn("installed, GNOME loads it at next login: log out and back in, then `qryg-search enable`")
         else:
-            warn("not installed: run `yags install`, then log out and back in")
+            warn("not installed: run `qryg-search install`, then log out and back in")
         return
     link = f" -> {EXTENSION_DIR.resolve()}" if EXTENSION_DIR.is_symlink() else ""
     enabled = [m["id"] for m in ctx.plugins.all().values() if ctx.plugins.is_enabled(m)]
@@ -158,7 +158,7 @@ def _style_list(ctx, _args):
     rows = [("built-in", "active" if not active else "", "the default look")]
     rows += [(name, "active" if name == active else "", str(ctx.styles.path(name))) for name in ctx.styles.names()]
     table(rows)
-    print(dim("  create one: yags style new NAME, then yags style use NAME"))
+    print(dim("  create one: qryg-search style new NAME, then qryg-search style use NAME"))
 
 
 def _style_use(ctx, args):
@@ -175,7 +175,7 @@ def _style_off(ctx, _args):
 def _style_new(ctx, args):
     target = ctx.styles.create(_style_name(args), args.rest[1] if len(args.rest) > 1 else None)
     ok(f"created {target}")
-    print(f"  apply it: yags style use {target.stem}")
+    print(f"  apply it: qryg-search style use {target.stem}")
 
 
 def _style_remove(ctx, args):
@@ -225,13 +225,13 @@ def source(ctx, args):
         raise CliError(f"name a source: {', '.join(sources)}")
     for name in targets:
         if name not in sources:
-            raise CliError(f"unknown source {name}, see `yags source`")
+            raise CliError(f"unknown source {name}, see `qryg-search source`")
         if ctx.sources.set_enabled(sources[name], args.action == "on"):
             warn(f"{name} was also off in GNOME Settings, turned that on too")
         ok(f"{name} {args.action}")
 
 
-@command("keyword", "list prefixes, or set one: yags keyword files find", aliases=["keywords"],
+@command("keyword", "list prefixes, or set one: qryg-search keyword files find", aliases=["keywords"],
          arguments=[("plugin", {"nargs": "?"}), ("prefix", {"nargs": "?", "help": "a prefix, none, or default"})])
 def keyword(ctx, args):
     if args.plugin is None:
@@ -242,7 +242,7 @@ def keyword(ctx, args):
             state = "" if ctx.plugins.is_enabled(manifest) else " (off)"
             rows.append((manifest["id"], prefix or "-", f"{usage}{state}"))
         table(rows)
-        print(dim("  change one: yags keyword PLUGIN PREFIX   (none removes it, default restores it)"))
+        print(dim("  change one: qryg-search keyword PLUGIN PREFIX   (none removes it, default restores it)"))
         return
     manifest = ctx.plugins.get(args.plugin)
     if args.prefix is None:
@@ -277,7 +277,7 @@ def _plugin_list(ctx, _args):
 
 def _require_id(args):
     if not args.rest:
-        raise CliError(f"usage: yags plugin {args.action} ID")
+        raise CliError(f"usage: qryg-search plugin {args.action} ID")
     return args.rest[0]
 
 
@@ -323,9 +323,9 @@ def _plugin_config(ctx, args):
 def _plugin_new(ctx, args):
     target, manifest = ctx.plugins.create(_require_id(args), args.type, args.lang, os.environ.get("USER", ""))
     ok(f"created {target}")
-    print(f"  edit {target / manifest['main']}, then: yags plugin reload")
+    print(f"  edit {target / manifest['main']}, then: qryg-search plugin reload")
     if args.type == "js":
-        print(dim("  run `yags plugin reload` after editing; no logout needed"))
+        print(dim("  run `qryg-search plugin reload` after editing; no logout needed"))
 
 
 def _plugin_install(ctx, args):
@@ -377,7 +377,7 @@ PLUGIN_ACTIONS = {
 }
 
 
-@command("bookmark", "yags bookmarks: list, add NAME TARGET, rm NAME", aliases=["bm"],
+@command("bookmark", "qryg-search bookmarks: list, add NAME TARGET, rm NAME", aliases=["bm"],
          arguments=[
              ("action", {"nargs": "?", "choices": ["list", "add", "rm", "remove", "path"]}),
              ("rest", {"nargs": "*"}),
@@ -389,16 +389,16 @@ def bookmark(ctx, args):
     if action == "list":
         items = ctx.bookmarks.load()
         if not items:
-            print("  no bookmarks yet, add one: yags bookmark add docs ~/Documents")
+            print("  no bookmarks yet, add one: qryg-search bookmark add docs ~/Documents")
         table([(b["name"], b.get("type") or kind_of(b["target"]), b["target"]) for b in items])
     elif action == "add":
         if len(args.rest) < 2:
-            raise CliError("usage: yags bookmark add NAME TARGET   (a path, URL, sftp://… or '> command')")
+            raise CliError("usage: qryg-search bookmark add NAME TARGET   (a path, URL, sftp://… or '> command')")
         entry = ctx.bookmarks.add(args.rest[0], " ".join(args.rest[1:]), args.type, args.tag)
         ok(f"bookmarked {entry['name']} ({entry['type']}) -> {entry['target']}")
     elif action in ("rm", "remove"):
         if not args.rest:
-            raise CliError("usage: yags bookmark rm NAME")
+            raise CliError("usage: qryg-search bookmark rm NAME")
         ctx.bookmarks.remove(args.rest)
         ok(f"removed {', '.join(args.rest)}")
     else:
@@ -411,10 +411,10 @@ def install_command(_ctx, args):
     cli = install(link=args.link)
     ok(f"installed to {EXTENSION_DIR}" + (" (linked)" if args.link else ""))
     ok(f"cli linked at {cli}")
-    print("  log out and back in to load it" + ("" if is_active(extension_state(UUID)) else ", then run: yags enable"))
+    print("  log out and back in to load it" + ("" if is_active(extension_state(UUID)) else ", then run: qryg-search enable"))
 
 
 @command("uninstall", "remove the extension, keeping settings")
 def uninstall_command(_ctx, _args):
     uninstall()
-    ok("uninstalled; `yags reset --all` before uninstalling clears settings")
+    ok("uninstalled; `qryg-search reset --all` before uninstalling clears settings")

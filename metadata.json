@@ -1,14 +1,14 @@
 {
-  "uuid": "yags@ru-dr",
-  "name": "yags",
-  "description": "Yet Another GNOME Search. A macOS-inspired, keyboard-driven launcher: Top Hit, inline completion, preview pane, filters for apps, files, actions and clipboard, and fast file search through plocate.\n\nOpen with Super+Space. Configure with the yags command line tool or the preferences window.",
+  "uuid": "qryg-search@ru-dr",
+  "name": "QryG Search",
+  "description": "QryG Search. A macOS-inspired, keyboard-driven launcher: Top Hit, inline completion, preview pane, filters for apps, files, actions and clipboard, and fast file search through plocate.\n\nOpen with Super+Space. Configure with the qryg-search command line tool or the preferences window.",
   "shell-version": [
     "48",
     "49",
     "50",
     "51"
   ],
-  "url": "https://github.com/ru-dr/yags",
-  "settings-schema": "org.gnome.shell.extensions.yags",
+  "url": "https://github.com/ru-dr/qryg-search",
+  "settings-schema": "io.github.ru_dr.QrygSearch",
   "version-name": "1.0.0"
 }

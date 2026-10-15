@@ -3,8 +3,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {baseScore, rankProviders, BaseScore} from '../lib/results/ranking.js';
 
-const plugin = (id, position, priority = 50) => ({id, position, priority, isYagsPlugin: true});
-const native = id => ({id, isYagsPlugin: false});
+const plugin = (id, position, priority = 50) => ({id, position, priority, isQrygSearchPlugin: true});
+const native = id => ({id, isQrygSearchPlugin: false});
 const ids = list => list.map(p => p.id);
 
 test('base order keeps positions: top, apps, after-apps, native, bottom', () => {

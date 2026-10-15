@@ -11,7 +11,7 @@ from .system import run
 from .ui import CliError
 
 API_VERSION = 1
-SOURCE_FILE = ".yags-source.json"
+SOURCE_FILE = ".qryg-search-source.json"
 PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 KEYWORD = re.compile(r"^\S{1,12}$")
 
@@ -132,7 +132,7 @@ class PluginCatalog:
     def get(self, plugin_id):
         manifest = self.all().get(plugin_id)
         if not manifest:
-            raise CliError(f"unknown plugin {plugin_id}, see `yags plugin list`")
+            raise CliError(f"unknown plugin {plugin_id}, see `qryg-search plugin list`")
         return manifest
 
     def plugin_keys(self):
@@ -144,14 +144,14 @@ class PluginCatalog:
         return keys
 
     def is_enabled(self, manifest):
-        if f"yags-{manifest['id']}" in self._settings.get("disabled-providers"):
+        if f"qryg-search-{manifest['id']}" in self._settings.get("disabled-providers"):
             return False
         toggle = manifest.get("toggle")
         return bool(self._settings.get(toggle)) if toggle else True
 
     def set_enabled(self, manifest, enabled):
         disabled = set(self._settings.get("disabled-providers"))
-        provider_id = f"yags-{manifest['id']}"
+        provider_id = f"qryg-search-{manifest['id']}"
         if enabled:
             disabled.discard(provider_id)
             if manifest.get("toggle"):
@@ -249,7 +249,7 @@ class PluginCatalog:
                 raise CliError(f"{folder} has no valid manifest.json")
             api = manifest.get("api", API_VERSION)
             if not isinstance(api, int) or api > API_VERSION:
-                raise CliError(f"{manifest['id']} needs plugin API {api}, this yags supports {API_VERSION}; update yags first")
+                raise CliError(f"{manifest['id']} needs plugin API {api}, this QryG supports {API_VERSION}; update QryG first")
             target = USER_PLUGINS / manifest["id"]
             remove_path(target)
             USER_PLUGINS.mkdir(parents=True, exist_ok=True)
@@ -273,19 +273,19 @@ class PluginCatalog:
 
     def update(self, manifest):
         if manifest["_bundled"]:
-            raise CliError(f"{manifest['id']} is bundled; it updates with yags")
+            raise CliError(f"{manifest['id']} is bundled; it updates with QryG")
         if manifest["_dir"].is_symlink():
             raise CliError(f"{manifest['id']} is linked to {manifest['_dir'].resolve()}; it is always up to date")
         source = self.source_of(manifest)
         if not source:
-            raise CliError(f"{manifest['id']} has no recorded source; reinstall it with `yags plugin install`")
+            raise CliError(f"{manifest['id']} has no recorded source; reinstall it with `qryg-search plugin install`")
         before = manifest.get("version", "")
         updated, _target, _linked = self.install(source)
         return before, updated.get("version", "")
 
     def remove(self, manifest):
         if manifest["_bundled"]:
-            raise CliError(f"{manifest['id']} is bundled with yags; disable it instead: yags plugin disable {manifest['id']}")
+            raise CliError(f"{manifest['id']} is bundled with QryG; disable it instead: qryg-search plugin disable {manifest['id']}")
         remove_path(manifest["_dir"])
         self.reload()
 

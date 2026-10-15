@@ -3,7 +3,7 @@
   "name": "Currency",
   "description": "Convert currencies with daily exchange rates from open.er-api.com, cached locally.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

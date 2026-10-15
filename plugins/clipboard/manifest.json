@@ -3,7 +3,7 @@
   "name": "Clipboard",
   "description": "Search clipboard history from the Copyous extension. Never shown in normal results.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

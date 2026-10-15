@@ -12,7 +12,7 @@ body:
   - type: textarea
     id: doctor
     attributes:
-      label: Output of `yags doctor`
+      label: Output of `qryg-search doctor`
       render: text
     validations:
       required: true
@@ -20,12 +20,12 @@ body:
     id: log
     attributes:
       label: Log
-      description: "Run `journalctl --user -b -o cat | grep -i yags | tail -50` and paste the output."
+      description: "Run `journalctl --user -b -o cat | grep -i qryg-search | tail -50` and paste the output."
       render: text
   - type: input
     id: versions
     attributes:
-      label: yags, GNOME Shell and distro versions
-      placeholder: yags 1.0.0, GNOME Shell 50, Fedora 44
+      label: QryG, GNOME Shell and distro versions
+      placeholder: QryG 1.0.0, GNOME Shell 50, Fedora 44
     validations:
       required: true

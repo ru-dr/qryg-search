@@ -3,7 +3,7 @@
   "name": "Bookmarks",
   "description": "Your own bookmarks for files, folders, locations, commands and sites. *+ adds one.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

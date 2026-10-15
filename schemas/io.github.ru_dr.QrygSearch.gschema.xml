@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.gnome.shell.extensions.yags" path="/org/gnome/shell/extensions/yags/">
+  <schema id="io.github.ru_dr.QrygSearch" path="/io/github/ru_dr/QrygSearch/">
     <key name="toggle-shortcut" type="as">
       <default>['&lt;Super&gt;space']</default>
       <summary>Toggle shortcut</summary>
-      <description>Keyboard shortcut that opens and closes yags.</description>
+      <description>Keyboard shortcut that opens and closes QryG.</description>
     </key>
     <key name="theme-preference" type="s">
       <choices>
@@ -20,27 +20,27 @@
     <key name="style" type="s">
       <default>''</default>
       <summary>Custom style</summary>
-      <description>Name of a CSS file in ~/.config/yags/styles, without .css. Empty uses the built-in look.</description>
+      <description>Name of a CSS file in ~/.config/qryg-search/styles, without .css. Empty uses the built-in look.</description>
     </key>
     <key name="disabled-providers" type="as">
       <default>['org.gnome.Calculator.desktop']</default>
       <summary>Disabled sources</summary>
-      <description>Search sources that never show results, by provider id or desktop id. Manage with `yags provider`.</description>
+      <description>Search sources that never show results, by provider id or desktop id. Manage with `qryg-search provider`.</description>
     </key>
     <key name="plugin-settings" type="s">
       <default>'{}'</default>
       <summary>Plugin settings</summary>
-      <description>JSON object of settings for plugins, keyed by plugin id. Manage with `yags plugin config`.</description>
+      <description>JSON object of settings for plugins, keyed by plugin id. Manage with `qryg-search plugin config`.</description>
     </key>
     <key name="keywords" type="s">
       <default>'{}'</default>
       <summary>Custom prefixes</summary>
-      <description>JSON object mapping plugin id to its prefix, overriding the plugin default. An empty string removes the prefix. Manage with `yags keyword`.</description>
+      <description>JSON object mapping plugin id to its prefix, overriding the plugin default. An empty string removes the prefix. Manage with `qryg-search keyword`.</description>
     </key>
     <key name="plugins-reload" type="i">
       <default>0</default>
       <summary>Plugin reload counter</summary>
-      <description>Changing this rescans the plugin folders. `yags plugin reload` bumps it.</description>
+      <description>Changing this rescans the plugin folders. `qryg-search plugin reload` bumps it.</description>
     </key>
     <key name="feature-keywords" type="b">
       <default>true</default>
@@ -167,7 +167,7 @@
       <description>Maximum results shown in each section.</description>
     </key>
     <key name="placeholder" type="s">
-      <default>'Yags Search'</default>
+      <default>'QryG Search'</default>
       <summary>Placeholder</summary>
       <description>Text shown in the empty search bar.</description>
     </key>

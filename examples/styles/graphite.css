@@ -1,11 +1,11 @@
-.yags-bar,
-.yags-results {
+.qryg-search-bar,
+.qryg-search-results {
   background-color: rgba(28, 28, 30, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
 }
 
-.yags-preview {
+.qryg-search-preview {
   background-color: rgba(255, 255, 255, 0.04);
   border-radius: 8px;
 }
@@ -19,12 +19,12 @@
   background-color: rgba(255, 255, 255, 0.12);
 }
 
-.yags-section-header {
+.qryg-search-section-header {
   color: rgba(235, 235, 245, 0.45);
 }
 
-.theme-light .yags-bar,
-.theme-light .yags-results {
+.theme-light .qryg-search-bar,
+.theme-light .qryg-search-results {
   background-color: rgba(250, 250, 250, 0.98);
   border: 1px solid rgba(0, 0, 0, 0.08);
 }

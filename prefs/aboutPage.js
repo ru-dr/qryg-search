@@ -4,7 +4,7 @@ import {page, group} from './widgets.js';
 
 export function buildAboutPage({metadata}) {
     const rows = [
-        ['yags', 'Yet Another GNOME Search, a launcher with plugins'],
+        ['QryG Search', 'A launcher with plugins'],
         ['Version', metadata['version-name'] ?? ''],
         ['Source', metadata.url ?? ''],
         ['Based on', 'Spotlight by itsnin'],

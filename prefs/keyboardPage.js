@@ -21,7 +21,7 @@ function formatShortcut(accelerator) {
 }
 
 function shortcutRow(settings) {
-    const row = new Adw.ActionRow({title: 'Open and close yags', subtitle: 'Click, then press a key combination', activatable: true});
+    const row = new Adw.ActionRow({title: 'Open and close QryG', subtitle: 'Click, then press a key combination', activatable: true});
     const label = new Gtk.Label({valign: Gtk.Align.CENTER});
     const show = () => (label.label = formatShortcut(settings.get_strv('toggle-shortcut')[0]));
     let capturing = false;

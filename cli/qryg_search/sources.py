@@ -36,7 +36,7 @@ class SourceCatalog:
     def all(self):
         sources = {}
         for plugin_id, manifest in self._plugins.all().items():
-            sources[plugin_id] = {"id": f"yags-{plugin_id}", "label": manifest.get("name", plugin_id), "manifest": manifest}
+            sources[plugin_id] = {"id": f"qryg-search-{plugin_id}", "label": manifest.get("name", plugin_id), "manifest": manifest}
         sources["apps"] = {"id": "applications", "label": "Applications and system actions", "manifest": None}
         for alias, desktop in gnome_sources().items():
             key = alias if alias not in sources else desktop.removesuffix(".desktop").lower()

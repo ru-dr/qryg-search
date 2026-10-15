@@ -3,7 +3,7 @@
   "name": "Calculator",
   "description": "Math, functions, constants, hex/binary/octal, bitwise and base conversion.",
   "version": "1.0.0",
-  "author": "yags",
+  "author": "QryG Search",
   "api": 1,
   "type": "js",
   "main": "plugin.js",

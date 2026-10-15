@@ -16,7 +16,7 @@ const PAGES = [
     buildAboutPage,
 ];
 
-export default class YagsPreferences extends ExtensionPreferences {
+export default class QrygSearchPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const context = {window, settings: this.getSettings(), path: this.path, metadata: this.metadata};
         for (const build of PAGES)
