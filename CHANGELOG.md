@@ -4,6 +4,8 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 
 ## Unreleased
 
+## 1.1.0 - 2026-10-14
+
 ### Added
 
 - `Ctrl + Tab` / `Ctrl + Shift + Tab` cycle the filters, a color picker and a Reset appearance button in Preferences, and screen reader names for the preview and inline completion
