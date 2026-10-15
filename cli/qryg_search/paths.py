@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 UUID = "qryg-search@ru-dr"
-SCHEMA = "io.github.ru_dr.QrygSearch"
+SCHEMA = "org.gnome.shell.extensions.qryg-search"
 REPO = Path(__file__).resolve().parents[2]
 DATA_HOME = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
 CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))

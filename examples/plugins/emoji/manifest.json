@@ -14,8 +14,8 @@
   "icon": "face-smile-symbolic",
   "timeout": 1500,
   "examples": [
-    {"query": "fire", "description": "Find an emoji by name"},
-    {"query": "smile", "description": "Enter copies it"}
+    ["fire", "Find an emoji by name"],
+    ["smile", "Enter copies it"]
   ],
   "settings": [
     {

@@ -14,9 +14,9 @@
   "icon": "accessories-calculator-symbolic",
   "completion": false,
   "examples": [
-    {"query": "2^10 / 3", "description": "Math, without the prefix too"},
-    {"query": "sqrt 2 + pi", "description": "Functions and constants"},
-    {"query": "0xff to bin", "description": "Convert between hex, binary, octal and decimal"},
-    {"query": "0b1010 & 0xf", "description": "Bitwise operators"}
+    ["2^10 / 3", "Math, without the prefix too"],
+    ["sqrt 2 + pi", "Functions and constants"],
+    ["0xff to bin", "Convert between hex, binary, octal and decimal"],
+    ["0b1010 & 0xf", "Bitwise operators"]
   ]
 }

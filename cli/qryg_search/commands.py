@@ -7,9 +7,10 @@ import sys
 from . import VERSION, remote
 from .bookmarks import BookmarkStore, kind_of
 from .doctor import run_doctor, shortcut_conflicts
+from . import update as updater
 from .install import install, uninstall
 from .manifest import example_text, guide_problems, load as load_manifest, normalize_examples
-from .paths import BOOKMARKS_FILE, EXTENSION_DIR, USER_PLUGINS, USER_STYLES, UUID
+from .paths import BOOKMARKS_FILE, EXTENSION_DIR, REPO, USER_PLUGINS, USER_STYLES, UUID
 from .plugins import PluginCatalog, is_word_keyword
 from .runner import resolve_settings, run_js, run_script
 from .settings import Settings, quote
@@ -523,6 +524,30 @@ def install_command(_ctx, args):
     ok(f"installed to {EXTENSION_DIR}" + (" (linked)" if args.link else ""))
     ok(f"cli linked at {cli}")
     print("  log out and back in to load it" + ("" if is_active(extension_state(UUID)) else ", then run: qryg enable"))
+
+
+@command("update", "check for a newer QryG and install it",
+         arguments=[("--check", {"action": "store_true", "help": "only say whether an update is available"})])
+def update_command(_ctx, args):
+    state = updater.check()
+    if state["kind"] == "branch":
+        if not state["available"]:
+            ok(f"{state['branch']} is up to date ({state['current']})")
+            return
+        print(f"  {state['branch']} is {state['behind']} commit{'s' if state['behind'] != 1 else ''} behind GitHub")
+    elif not state["available"]:
+        ok(f"QryG {state['current']} is the latest release")
+        return
+    else:
+        print(f"  QryG {state['latest'].lstrip('v')} is available, you have {state['current']}")
+    if args.check:
+        print(dim("  install it with: qryg update"))
+        return
+    updater.apply(state)
+    ok(f"updated to {state['target']}")
+    # Install with the code just checked out, not the old code running now.
+    command = [str(REPO / "bin" / "qryg"), "install"] + (["--link"] if EXTENSION_DIR.is_symlink() else [])
+    os.execv(command[0], command)
 
 
 @command("uninstall", "remove the extension, keeping settings")

@@ -11,6 +11,7 @@ from qryg_search.plugins import is_word_keyword  # noqa: E402
 from qryg_search.settings import parse_variant, quote, string_list  # noqa: E402
 from qryg_search.styles import StyleStore  # noqa: E402
 from qryg_search.ui import CliError  # noqa: E402
+from qryg_search.update import latest_release, version_key  # noqa: E402
 
 
 class VariantTests(unittest.TestCase):
@@ -25,6 +26,18 @@ class VariantTests(unittest.TestCase):
     def test_quote(self):
         self.assertEqual(quote("it's"), "'it\\'s'")
         self.assertEqual(string_list(["a", "b"]), "['a', 'b']")
+
+
+class UpdateTests(unittest.TestCase):
+    def test_latest_release_skips_pre_releases(self):
+        self.assertEqual(latest_release(["v1.0.0", "v1.10.0", "v1.9.2", "v2.0.0-rc1", "notes"]), "v1.10.0")
+        self.assertIsNone(latest_release(["v2.0.0-rc1"]))
+
+    def test_version_key(self):
+        self.assertEqual(version_key("1.2.3"), (1, 2, 3))
+        self.assertEqual(version_key("v1.2.3"), (1, 2, 3))
+        self.assertIsNone(version_key("1.2"))
+        self.assertGreater(version_key("v1.10.0"), version_key("1.9.0"))
 
 
 class HelperTests(unittest.TestCase):

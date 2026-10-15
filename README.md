@@ -55,22 +55,29 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 
 ## Install
 
-You need GNOME Shell 48 or newer. `plocate` (file search) and the Copyous extension (clipboard) are optional.
+You need GNOME Shell 48 or newer, `git` and `python3`. `plocate` (file search) and the Copyous extension (clipboard) are optional.
 
 ```bash
-git clone https://github.com/ru-dr/qryg-search.git
-cd qryg-search
-./bin/qryg install       # installs the extension and links the qryg CLI into ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/ru-dr/qryg-search/main/install.sh | bash
 ```
 
-Log out and back in, because Wayland only loads new extensions at login. Then run:
+This downloads the latest release to `~/.local/share/qryg-search/src`, installs the extension and links the `qryg` CLI into `~/.local/bin`. Read [`install.sh`](install.sh) first if you like; it is short. Log out and back in, because Wayland only loads new extensions at login. Then run:
 
 ```bash
 qryg enable
 qryg doctor              # checks dependencies, shortcut and prefix conflicts
 ```
 
-For development, `./bin/qryg install --link` symlinks the checkout instead.
+To update:
+
+```bash
+qryg update --check      # is there a newer release?
+qryg update              # install it, then log out and back in
+```
+
+`QRYG_REF=main` before `bash` in the install line follows the main branch instead of releases, and `qryg update` then follows it too.
+
+From a clone, `./bin/qryg install` installs that checkout, and `./bin/qryg install --link` symlinks it, for development.
 
 ## Using it
 

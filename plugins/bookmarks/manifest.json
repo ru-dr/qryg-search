@@ -12,8 +12,8 @@
   "priority": 10,
   "icon": "user-bookmarks-symbolic",
   "examples": [
-    {"query": "docs", "description": "Find a bookmark by name"},
-    {"query": "+ ~/Projects", "description": "Bookmark a folder, file, site or command"},
-    {"query": "", "description": "List every bookmark"}
+    ["docs", "Find a bookmark by name"],
+    ["+ ~/Projects", "Bookmark a folder, file, site or command"],
+    ["", "List every bookmark"]
   ]
 }

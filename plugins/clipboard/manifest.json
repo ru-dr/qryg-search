@@ -17,7 +17,7 @@
   "completion": false,
   "toggle": "feature-clipboard",
   "examples": [
-    {"query": "", "description": "Recent clipboard history"},
-    {"query": "password", "description": "Search the history"}
+    ["", "Recent clipboard history"],
+    ["password", "Search the history"]
   ]
 }

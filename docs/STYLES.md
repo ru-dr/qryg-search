@@ -53,6 +53,7 @@ You can also pick a style in **Preferences → Appearance → Style**, which has
 | `.qryg-search-preview` | The preview pane |
 | `.qryg-search-preview-title`, `.qryg-search-preview-kind`, `.qryg-search-preview-body`, `.qryg-search-preview-code` | Preview text |
 | `.qryg-search-preview-row`, `.qryg-search-preview-key`, `.qryg-search-preview-value` | Preview details |
+| `.qryg-search-preview-example` (`.current` on the selected one), `.qryg-search-preview-example-query`, `.qryg-search-preview-example-text` | Usage examples in the preview |
 | `.qryg-search-preview-separator` | The line in the preview |
 | `.qryg-search-preview-thumb` | Image thumbnails |
 | `.qryg-search-spectrum`, `.qryg-search-spectrum-swatch`, `.qryg-search-spectrum-base`, `.qryg-search-spectrum-hex` | The colour spectrum |

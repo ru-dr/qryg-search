@@ -7,12 +7,22 @@ All notable changes to QryG Search are listed here. The format follows [Keep a C
 ### Added
 
 - Every plugin has a prefix. New ones: `conv` for units, `fx` for currency, `col` for colours, `tz` for time and world clocks, `gen` for generators and `session` for session actions. They all still answer without the prefix.
-- A usage guide for every plugin: typing a prefix that matches nothing shows the plugin's examples, which `Tab` completes and `Enter` fills in. Preferences → Plugins shows them under *How to use*, and `qryg plugin info` under *how to use*.
+- A usage guide for every plugin: typing a prefix on its own, or a query the plugin has nothing for, shows the plugin's examples first, which `Tab` completes and `Enter` fills in. Preferences → Plugins shows them under *How to use*, and `qryg plugin info` under *how to use*.
 - `qryg plugin new` adds a starter `examples` list
+- A one-line install: `curl -fsSL https://raw.githubusercontent.com/ru-dr/qryg-search/main/install.sh | bash`, which also updates when run again
+- `qryg update` installs the newest release, or the newest commit when you follow a branch. `qryg update --check` only says whether there is one.
+- Previews can show `examples`, as `["what to type", "what it does"]` pairs, each in its own block
 
 ### Changed
 
-- **Breaking for plugin authors:** `keyword` and `examples` are now required in `manifest.json`. A plugin without them is not loaded, shows under *Not loaded* in preferences, and can't be installed. `qryg plugin validate` names what is missing. See [Usage guide](docs/PLUGINS.md#usage-guide).
+- **Breaking for plugin authors:** `keyword` and `examples` are now required in `manifest.json`. `examples` is a list of `["what to type", "what it does"]` pairs. A plugin without them is not loaded, shows under *Not loaded* in preferences, and can't be installed. `qryg plugin validate` names what is missing. See [Usage guide](docs/PLUGINS.md#usage-guide).
+- The settings schema is now `org.gnome.shell.extensions.qryg-search`, as extensions.gnome.org requires. `qryg install` copies your 1.1 settings over once.
+- The extension description says how QryG uses the clipboard and the network
+- The extension zip no longer includes a compiled schema, which GNOME 44 and newer don't need
+
+### Fixed
+
+- Typing a space after a word prefix, like `gen `, now searches with the prefix right away. GNOME treats `gen` and `gen ` as the same search, so before, the prefix only applied after the next letter.
 
 ## 1.1.0 - 2026-10-14
 
