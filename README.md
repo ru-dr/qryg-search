@@ -74,7 +74,7 @@ For development, `./bin/qryg-search install --link` symlinks the checkout instea
 
 ## Using it
 
-Type anything and every source is searched together. Calculator, units, currency, colours, time and generators answer on their own when the query looks like one of theirs.
+Type anything and every source is searched together. Calculator, units, currency, colours, time and generators answer on their own when the query looks like one of theirs. So do world clocks (`time tokyo`, `utc+2`) and session actions (`lock`, `restart`).
 
 A **prefix** limits the search to one plugin. Symbol prefixes work right away (`>ls`), and word prefixes need a space (`f report`).
 
@@ -87,6 +87,8 @@ A **prefix** limits the search to one plugin. Symbol prefixes work right away (`
 | `f` | Files | `f invoice` |
 | `win` | Open windows | `win firefox` |
 | `clip` | Clipboard | `clip password` |
+| `:` | Emoji | `:fire`, `:thumbs up` |
+| `kill` | Processes | `kill firefox` |
 
 Prefixes are yours to change:
 
@@ -123,7 +125,7 @@ QryG does not use GNOME's search UI, but it does reuse GNOME's **search provider
 
 | Comes from GNOME | QryG plugins (bundled) |
 |---|---|
-| Apps, Settings, and app search providers | calc, units, currency, colors, generators, time, shell, web, bookmarks, files, windows, clipboard |
+| Apps, Settings, and app search providers | calc, units, currency, colors, generators, time, session, emoji, processes, shell, web, bookmarks, files, windows, clipboard |
 | `qryg-search source` lists and toggles them | `qryg-search plugin` lists and toggles them |
 
 ```bash
